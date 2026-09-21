@@ -71,6 +71,8 @@ main { flex: 1; }
   height: 28px;
   border-radius: 50%;
   border: 1px solid var(--border);
+  position: relative;
+  top: 2px; /* 로고 소문자 디센더(p·g) 기준 시각 중심 보정 */
 }
 
 .logo {
