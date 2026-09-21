@@ -26,7 +26,7 @@ permalink: /posts/
           {% assign ex = post.description | default: post.excerpt | strip_html | strip_newlines | strip %}
           {% if ex == "" %}{% assign ex = post.content | strip_html | strip_newlines %}{% endif %}
           <span class="row-excerpt">{{ ex | truncate: 90 }}</span>
-          <time class="row-date" datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y.%m.%d" }}</time>
+          <time class="row-date" datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y. %-m. %-d." }}</time>
         </span>
       </a>
     </li>
