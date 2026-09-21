@@ -1,0 +1,32 @@
+---
+layout: default
+---
+<section class="hero">
+  <h1>안녕하세요, ppaangss입니다.</h1>
+  <p>공부한 것을 기록하고 커리어를 정리하는 공간입니다.</p>
+</section>
+
+<section class="recent">
+  <div class="section-head">
+    <span class="label">RECENT POSTS</span>
+    <a class="more" href="{{ '/posts/' | relative_url }}">전체 보기 →</a>
+  </div>
+  <ul class="post-list">
+    {% for post in site.posts limit: 5 %}
+    <li>
+      <a class="row" href="{{ post.url | relative_url }}">
+        {% if post.image %}
+        <img class="thumb" src="{{ post.image | relative_url }}" alt="">
+        {% else %}
+        <span class="thumb thumb-fallback cat-{{ post.categories.first | default: '기타' }}"></span>
+        {% endif %}
+        <span class="row-main">
+          <span class="row-title">{{ post.title }}</span>
+          <span class="row-cat">{{ post.categories.first }}</span>
+        </span>
+        <time class="row-date" datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y.%m.%d" }}</time>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>

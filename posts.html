@@ -1,0 +1,32 @@
+---
+layout: default
+title: Posts
+permalink: /posts/
+---
+<h1 class="page-title">Posts</h1>
+
+{% for cat in site.categories %}
+<section class="cat-group">
+  <div class="section-head">
+    <span class="label">{{ cat[0] }}</span>
+  </div>
+  <ul class="post-list">
+    {% for post in cat[1] %}
+    <li>
+      <a class="row" href="{{ post.url | relative_url }}">
+        {% if post.image %}
+        <img class="thumb" src="{{ post.image | relative_url }}" alt="">
+        {% else %}
+        <span class="thumb thumb-fallback cat-{{ post.categories.first | default: '기타' }}"></span>
+        {% endif %}
+        <span class="row-main">
+          <span class="row-title">{{ post.title }}</span>
+          <span class="row-cat">{{ post.categories.first }}</span>
+        </span>
+        <time class="row-date" datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y.%m.%d" }}</time>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endfor %}
