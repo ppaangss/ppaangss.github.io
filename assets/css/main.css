@@ -116,18 +116,17 @@ main { flex: 1; }
 
 .post-list .row {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 16px;
   padding: 18px 0 18px 12px;
   border-bottom: 1px solid var(--border);
 }
 
+/* 서문 2줄 기준 항목 높이에 맞춘 고정 크기 — 모든 항목에서 동일 */
 .thumb {
   flex-shrink: 0;
   width: 160px;
-  height: auto;
-  align-self: stretch;
-  min-height: 110px;
+  height: 134px;
   border-radius: 6px;
   object-fit: cover;
   background: var(--code-bg);
@@ -412,7 +411,7 @@ html { scroll-behavior: smooth; }
   .wrap { padding-top: 32px; }
   .hero { padding-top: 64px; }
   .recent { padding-top: 64px; }
-  .thumb { width: 104px; min-height: 78px; }
+  .thumb { width: 104px; height: 88px; }
   .post-title { font-size: 26px; }
   .post-list .row { gap: 12px; padding-left: 0; }
   .row-title { font-size: 16px; }
