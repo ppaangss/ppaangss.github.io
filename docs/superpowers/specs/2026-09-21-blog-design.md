@@ -28,7 +28,7 @@
 - 폰트: 본문 Pretendard(웹폰트), 날짜·라벨·로고 JetBrains Mono
 - 라이트 팔레트: bg `#FFFFFF`, 본문 `#1A1A1A`, 보조 `#8A8A8A`, 흐림 `#B5B5B5`, 선 `#EBEBEB`, 코드 `#F6F6F6`
 - 다크 팔레트: bg `#131316`, 본문 `#ECECEF`, 보조 `#9A9AA5`, 흐림 `#606068`, 선 `#26262E`, 코드 `#1D1D24`
-- 다크모드: CSS 변수 + `prefers-color-scheme` 자동 전환
+- **다크모드가 기본값**: `:root`에 다크 팔레트, `@media (prefers-color-scheme: light)`일 때만 라이트 전환
 - 섹션 라벨(RECENT POSTS 등): 모노스페이스, letter-spacing 넓게, 흐림색
 
 ### 이번 범위

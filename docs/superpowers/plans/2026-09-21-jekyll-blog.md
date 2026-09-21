@@ -47,7 +47,7 @@
 **Files:**
 - Create: `assets/css/main.css`
 
-- [ ] CSS 변수(:root 라이트, `@media (prefers-color-scheme: dark)` 다크 오버라이드), 리셋, `.wrap` 680px
+- [ ] CSS 변수(:root **다크 기본**, `@media (prefers-color-scheme: light)` 라이트 오버라이드), 리셋, `.wrap` 680px
 - [ ] 헤더/푸터, 히어로, 섹션 라벨(mono, letter-spacing), 글 목록 행(썸네일 128×96 + 제목/카테고리 + 날짜, border-bottom, padding 18px 0 18px 12px), 카테고리 폴백 썸네일 그라데이션
 - [ ] 글 본문 타이포(제목·소제목·문단·코드블록·인용·리스트), rouge 하이라이팅 색
 - [ ] Commit: `feat: 메인 스타일시트`
