@@ -2,6 +2,7 @@
 title: 배포 전 부하테스트 계획
 categories: [프로젝트, 버스핑]
 image: /assets/img/busping-mvp.png
+description: "\"유저 100명을 버틴다\"는 막연한 목표를 SLO 기준, 유저 시나리오, 일곱 가지 테스트 계획으로 옮긴 과정."
 ---
 
 ![버스핑 앱](/assets/img/busping-mvp.png){: width="300"}
