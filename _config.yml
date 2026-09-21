@@ -1,0 +1,25 @@
+title: ppaangss.dev
+description: 공부한 것을 기록하고 커리어를 정리하는 공간
+url: "https://ppaangss.github.io"
+lang: ko
+timezone: Asia/Seoul
+
+permalink: /posts/:title/
+markdown: kramdown
+highlighter: rouge
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-feed
+  - jekyll-sitemap
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+
+exclude:
+  - docs/
+  - README.md
