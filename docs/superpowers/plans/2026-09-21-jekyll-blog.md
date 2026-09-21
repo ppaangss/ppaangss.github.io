@@ -1,6 +1,6 @@
 # Jekyll 블로그 구현 계획
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 스펙(docs/superpowers/specs/2026-09-21-blog-design.md)의 V1 미니멀 디자인대로 Jekyll 블로그를 만들어 ppaangss.github.io에 배포한다.
 
@@ -26,9 +26,9 @@
 **Files:**
 - Create: `_config.yml`, `.gitignore`
 
-- [ ] `_config.yml` 작성 (title/description/url, permalink `/posts/:title/`, plugins seo-tag·feed·sitemap, posts 기본 layout post, `docs/` exclude)
-- [ ] `.gitignore` 작성 (`_site/`, `.jekyll-cache/`, `.DS_Store`)
-- [ ] Commit: `feat: Jekyll 기본 설정`
+- [x] `_config.yml` 작성 (title/description/url, permalink `/posts/:title/`, plugins seo-tag·feed·sitemap, posts 기본 layout post, `docs/` exclude)
+- [x] `.gitignore` 작성 (`_site/`, `.jekyll-cache/`, `.DS_Store`)
+- [x] Commit: `feat: Jekyll 기본 설정`
 
 ### Task 2: 레이아웃
 
@@ -38,19 +38,19 @@
 **Interfaces:**
 - Produces: `default` 레이아웃(헤더 로고 ppaangss.dev + Posts/About 내비, 푸터 © · GitHub · Email), `post` 레이아웃(meta: 카테고리·날짜 → h1 → 본문)
 
-- [ ] `default.html`: head(seo, Pretendard CDN, JetBrains Mono, main.css, feed_meta) + `.wrap` 컨테이너 + header/main/footer
-- [ ] `post.html`: default 상속, `.post-meta`(카테고리 · YYYY.MM.DD) → `.post-title` → `.post-body`
-- [ ] Commit: `feat: default/post 레이아웃`
+- [x] `default.html`: head(seo, Pretendard CDN, JetBrains Mono, main.css, feed_meta) + `.wrap` 컨테이너 + header/main/footer
+- [x] `post.html`: default 상속, `.post-meta`(카테고리 · YYYY.MM.DD) → `.post-title` → `.post-body`
+- [x] Commit: `feat: default/post 레이아웃`
 
 ### Task 3: 스타일
 
 **Files:**
 - Create: `assets/css/main.css`
 
-- [ ] CSS 변수(:root **다크 기본**, `@media (prefers-color-scheme: light)` 라이트 오버라이드), 리셋, `.wrap` 680px
-- [ ] 헤더/푸터, 히어로, 섹션 라벨(mono, letter-spacing), 글 목록 행(썸네일 128×96 + 제목/카테고리 + 날짜, border-bottom, padding 18px 0 18px 12px), 카테고리 폴백 썸네일 그라데이션
-- [ ] 글 본문 타이포(제목·소제목·문단·코드블록·인용·리스트), rouge 하이라이팅 색
-- [ ] Commit: `feat: 메인 스타일시트`
+- [x] CSS 변수(:root **다크 기본**, `@media (prefers-color-scheme: light)` 라이트 오버라이드), 리셋, `.wrap` 680px
+- [x] 헤더/푸터, 히어로, 섹션 라벨(mono, letter-spacing), 글 목록 행(썸네일 128×96 + 제목/카테고리 + 날짜, border-bottom, padding 18px 0 18px 12px), 카테고리 폴백 썸네일 그라데이션
+- [x] 글 본문 타이포(제목·소제목·문단·코드블록·인용·리스트), rouge 하이라이팅 색
+- [x] Commit: `feat: 메인 스타일시트`
 
 ### Task 4: 페이지
 
@@ -60,22 +60,22 @@
 **Interfaces:**
 - Consumes: Task 2 레이아웃, Task 3 클래스명(`.post-list`, `.row`, `.thumb`, `.label` 등)
 
-- [ ] `index.html`: 히어로(인사말 + 소개 1줄) + RECENT POSTS(최근 5편, 썸네일 행) + 전체 보기 링크
-- [ ] `posts.html` (permalink `/posts/`): 카테고리별 그룹 목록
-- [ ] `about.md` (permalink `/about/`): 제목 About + 본문 "준비중입니다."
-- [ ] Commit: `feat: 홈/목록/About 페이지`
+- [x] `index.html`: 히어로(인사말 + 소개 1줄) + RECENT POSTS(최근 5편, 썸네일 행) + 전체 보기 링크
+- [x] `posts.html` (permalink `/posts/`): 카테고리별 그룹 목록
+- [x] `about.md` (permalink `/about/`): 제목 About + 본문 "준비중입니다."
+- [x] Commit: `feat: 홈/목록/About 페이지`
 
 ### Task 5: 샘플 글
 
 **Files:**
 - Create: `_posts/2026-09-21-tcp-3way-handshake.md`
 
-- [ ] 카테고리 `네트워크`, 이미지 없음(폴백 썸네일 확인용), 본문에 문단·소제목·코드블록 포함
-- [ ] Commit: `feat: 샘플 글 1편`
+- [x] 카테고리 `네트워크`, 이미지 없음(폴백 썸네일 확인용), 본문에 문단·소제목·코드블록 포함
+- [x] Commit: `feat: 샘플 글 1편`
 
 ### Task 6: 배포 및 검증
 
-- [ ] 로컬 jekyll 유무 확인 (`jekyll -v` 또는 `gem list`), 있으면 `jekyll build`로 사전 검증
-- [ ] `git push origin main`
-- [ ] GitHub Pages 빌드 완료 대기 후 `curl -s https://ppaangss.github.io` 로 홈 HTML 확인 (로고 ppaangss.dev, 샘플 글 제목 노출)
-- [ ] `/posts/`, `/about/`, 샘플 글 페이지 각각 curl로 200 + 핵심 텍스트 확인 ("준비중입니다." 포함)
+- [x] 로컬 jekyll 유무 확인 (`jekyll -v` 또는 `gem list`), 있으면 `jekyll build`로 사전 검증
+- [x] `git push origin main`
+- [x] GitHub Pages 빌드 완료 대기 후 `curl -s https://ppaangss.github.io` 로 홈 HTML 확인 (로고 ppaangss.dev, 샘플 글 제목 노출)
+- [x] `/posts/`, `/about/`, 샘플 글 페이지 각각 curl로 200 + 핵심 텍스트 확인 ("준비중입니다." 포함)
