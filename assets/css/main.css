@@ -73,8 +73,6 @@ main { flex: 1; }
   border: 1px solid var(--border);
 }
 
-.avatar-link:hover .avatar { border-color: var(--text-secondary); }
-
 .logo {
   font-family: var(--font-mono);
   font-size: 16px;
