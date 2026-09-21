@@ -3,34 +3,96 @@ layout: default
 title: Posts
 permalink: /posts/
 ---
-<h1 class="page-title">Posts</h1>
-
-{% assign groups = site.posts | group_by_exp: "post", "post.categories | join: ' › '" %}
-{% for group in groups %}
-<section class="cat-group">
-  <div class="section-head">
-    <span class="label">{{ group.name }}</span>
-  </div>
-  <ul class="post-list">
-    {% for post in group.items %}
-    <li>
-      <a class="row" href="{{ post.url | relative_url }}">
-        {% if post.image %}
-        <img class="thumb" src="{{ post.image | relative_url }}" alt="">
-        {% else %}
-        <span class="thumb thumb-fallback cat-{{ post.categories | last | default: '기타' }}"></span>
-        {% endif %}
-        <span class="row-main">
-          <span class="row-cat">{{ post.categories | join: " › " }}</span>
-          <span class="row-title">{{ post.title }}</span>
-          {% assign ex = post.description | default: post.excerpt | strip_html | strip_newlines | strip %}
-          {% if ex == "" %}{% assign ex = post.content | strip_html | strip_newlines %}{% endif %}
-          <span class="row-excerpt">{{ ex | truncate: 90 }}</span>
-          <time class="row-date" datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y. %-m. %-d." }}</time>
-        </span>
-      </a>
-    </li>
+<div class="posts-head">
+  <h1 class="page-title">Posts</h1>
+  <select id="cat-filter" class="cat-filter" aria-label="카테고리 선택">
+    <option value="">전체 카테고리</option>
+    {% assign paths = "" | split: "" %}
+    {% for post in site.posts %}
+      {% assign p = post.categories | join: " › " %}
+      {% unless paths contains p %}{% assign paths = paths | push: p %}{% endunless %}
     {% endfor %}
-  </ul>
-</section>
-{% endfor %}
+    {% assign paths = paths | sort %}
+    {% for p in paths %}
+    <option value="{{ p }}">{{ p }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+{% if site.tags.size > 0 %}
+<div class="tag-list" id="tag-list">
+  {% assign all_tags = site.tags | sort %}
+  {% for t in all_tags %}
+  <button type="button" class="tag" data-tag="{{ t[0] }}">#{{ t[0] }}</button>
+  {% endfor %}
+</div>
+{% endif %}
+
+<ul class="post-list posts-flat" id="all-posts">
+  {% for post in site.posts %}
+  <li data-cat="{{ post.categories | join: ' › ' }}" data-tags="{{ post.tags | join: ',' }}">
+    <a class="row" href="{{ post.url | relative_url }}">
+      {% if post.image %}
+      <img class="thumb" src="{{ post.image | relative_url }}" alt="">
+      {% else %}
+      <span class="thumb thumb-fallback cat-{{ post.categories | last | default: '기타' }}"></span>
+      {% endif %}
+      <span class="row-main">
+        <span class="row-cat">{{ post.categories | join: " › " }}</span>
+        <span class="row-title">{{ post.title }}</span>
+        {% assign ex = post.description | default: post.excerpt | strip_html | strip_newlines | strip %}
+        {% if ex == "" %}{% assign ex = post.content | strip_html | strip_newlines %}{% endif %}
+        <span class="row-excerpt">{{ ex | truncate: 90 }}</span>
+        <time class="row-date" datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y. %-m. %-d." }}</time>
+      </span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+<p class="no-result" id="no-result" hidden>해당하는 글이 없습니다.</p>
+
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var cat = params.get('category') || '';
+  var tag = params.get('tag') || '';
+  var sel = document.getElementById('cat-filter');
+  var tagButtons = document.querySelectorAll('#tag-list .tag');
+  var items = document.querySelectorAll('#all-posts > li');
+  var empty = document.getElementById('no-result');
+
+  if (sel.querySelector('option[value="' + CSS.escape(cat) + '"]') === null) cat = '';
+  sel.value = cat;
+
+  function apply() {
+    var visible = 0;
+    items.forEach(function (li) {
+      var okCat = !cat || li.dataset.cat === cat;
+      var tags = li.dataset.tags ? li.dataset.tags.split(',') : [];
+      var okTag = !tag || tags.indexOf(tag) !== -1;
+      var show = okCat && okTag;
+      li.hidden = !show;
+      if (show) visible++;
+    });
+    empty.hidden = visible > 0;
+    tagButtons.forEach(function (b) {
+      b.classList.toggle('active', b.dataset.tag === tag);
+    });
+    var q = new URLSearchParams();
+    if (cat) q.set('category', cat);
+    if (tag) q.set('tag', tag);
+    var qs = q.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+  }
+
+  sel.addEventListener('change', function () { cat = sel.value; apply(); });
+  tagButtons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      tag = (tag === b.dataset.tag) ? '' : b.dataset.tag;
+      apply();
+    });
+  });
+
+  apply();
+})();
+</script>

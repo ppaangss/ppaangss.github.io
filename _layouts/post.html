@@ -15,6 +15,13 @@ layout: default
   <div class="post-body">
     {{ content }}
   </div>
+  {% if page.tags.size > 0 %}
+  <div class="post-tags">
+    {% for t in page.tags %}
+    <a class="tag" href="{{ '/posts/' | relative_url }}?tag={{ t | url_encode }}">#{{ t }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
 </article>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
