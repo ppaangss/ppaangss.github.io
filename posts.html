@@ -19,15 +19,7 @@ permalink: /posts/
   </select>
 </div>
 
-{% if site.tags.size > 0 %}
-<div class="tag-list" id="tag-list">
-  {% assign all_tags = site.tags | sort %}
-  {% for t in all_tags %}
-  <button type="button" class="tag" data-tag="{{ t[0] }}">#{{ t[0] }}</button>
-  {% endfor %}
-</div>
-{% endif %}
-
+<div class="posts-layout">
 <ul class="post-list posts-flat" id="all-posts">
   {% for post in site.posts %}
   <li data-cat="{{ post.categories | join: ' › ' }}" data-tags="{{ post.tags | join: ',' }}">
@@ -49,6 +41,18 @@ permalink: /posts/
   </li>
   {% endfor %}
 </ul>
+{% if site.tags.size > 0 %}
+<aside class="tag-side">
+  <span class="label">TAGS</span>
+  <div class="tag-nav" id="tag-list">
+    {% assign all_tags = site.tags | sort %}
+    {% for t in all_tags %}
+    <button type="button" class="tag" data-tag="{{ t[0] }}">#{{ t[0] }}<span class="tag-count">{{ t[1].size }}</span></button>
+    {% endfor %}
+  </div>
+</aside>
+{% endif %}
+</div>
 <p class="no-result" id="no-result" hidden>해당하는 글이 없습니다.</p>
 
 <script>
