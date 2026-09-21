@@ -136,6 +136,7 @@ main { flex: 1; }
 .cat-네트워크 { background: linear-gradient(135deg, #1e2a44, #2c4a6e); }
 .cat-DB      { background: linear-gradient(135deg, #1e3a2f, #2e5c48); }
 .cat-회고     { background: linear-gradient(135deg, #3a2e1e, #5c4a2e); }
+.cat-버스핑   { background: linear-gradient(135deg, #23384a, #2e5a5c); }
 
 @media (prefers-color-scheme: light) {
   .cat-네트워크 { background: linear-gradient(135deg, #dbe7f6, #b9d0ec); }
@@ -205,6 +206,7 @@ main { flex: 1; }
 
 .post-body > * + * { margin-top: 24px; }
 
+.post-body h1,
 .post-body h2 {
   padding-top: 16px;
   font-size: 22px;
