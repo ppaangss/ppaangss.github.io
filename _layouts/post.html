@@ -9,7 +9,31 @@ layout: default
     </p>
     <h1 class="post-title">{{ page.title }}</h1>
   </header>
+  <nav class="toc" hidden>
+    <span class="label">목차</span>
+  </nav>
   <div class="post-body">
     {{ content }}
   </div>
 </article>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var body = document.querySelector('.post-body');
+  var toc = document.querySelector('.toc');
+  if (!body || !toc) return;
+  var heads = body.querySelectorAll('h1[id], h2[id]');
+  if (heads.length < 2) return;
+  var list = document.createElement('ol');
+  heads.forEach(function (h) {
+    var li = document.createElement('li');
+    if (h.tagName === 'H2') li.className = 'toc-sub';
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    li.appendChild(a);
+    list.appendChild(li);
+  });
+  toc.appendChild(list);
+  toc.hidden = false;
+});
+</script>
