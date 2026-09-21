@@ -202,9 +202,9 @@ main { flex: 1; }
 
 .posts-head {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: flex-end;
-  gap: 20px;
+  gap: 18px;
   padding-top: 90px;
 }
 
