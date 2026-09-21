@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
   {% seo %}
+  <link rel="icon" href="https://github.com/ppaangss.png?size=64">
+  <link rel="apple-touch-icon" href="https://github.com/ppaangss.png?size=180">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +18,12 @@
 <body>
   <div class="wrap">
     <header class="site-header">
-      <a class="logo mono" href="{{ '/' | relative_url }}">ppaangss.dev</a>
+      <span class="brand">
+        <a class="avatar-link" href="https://github.com/ppaangss" title="GitHub 프로필">
+          <img class="avatar" src="https://github.com/ppaangss.png?size=64" alt="ppaangss 프로필 사진" width="28" height="28">
+        </a>
+        <a class="logo mono" href="{{ '/' | relative_url }}">ppaangss.dev</a>
+      </span>
       <nav class="site-nav">
         <a href="{{ '/posts/' | relative_url }}">Posts</a>
         <a href="{{ '/about/' | relative_url }}">About</a>
