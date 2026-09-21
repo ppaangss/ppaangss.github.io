@@ -419,10 +419,22 @@ html { scroll-behavior: smooth; }
   .wrap { padding-top: 32px; }
   .hero { padding-top: 64px; }
   .recent { padding-top: 64px; }
-  .thumb { width: 112px; height: 84px; border-radius: 8px; }
   .post-title { font-size: 26px; }
-  .post-list .row { gap: 14px; padding: 20px 0; }
-  .row-title { font-size: 17px; }
-  .row-excerpt { -webkit-line-clamp: 2; font-size: 13px; }
-  .row-date { margin-top: 4px; font-size: 12px; }
+
+  /* 목록: 세로 스택 카드 — 이미지 풀폭 상단 */
+  .post-list .row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 28px 0;
+  }
+  .thumb {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    border-radius: 12px;
+  }
+  .row-title { font-size: 20px; }
+  .row-excerpt { -webkit-line-clamp: 3; }
+  .row-date { margin-top: 4px; }
 }
