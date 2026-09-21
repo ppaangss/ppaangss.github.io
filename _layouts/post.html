@@ -4,7 +4,7 @@ layout: default
 <article class="post">
   <header class="post-header">
     <p class="post-meta mono">
-      {% if page.categories.first %}<span class="post-cat">{{ page.categories.first }}</span><span class="dot">·</span>{% endif %}
+      {% if page.categories.size > 0 %}<span class="post-cat">{{ page.categories | join: " › " }}</span><span class="dot">·</span>{% endif %}
       <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%Y.%m.%d" }}</time>
     </p>
     <h1 class="post-title">{{ page.title }}</h1>

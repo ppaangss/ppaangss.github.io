@@ -1,7 +1,6 @@
 ---
 title: 배포 전 부하테스트 계획
-categories:
-  - 버스핑
+categories: [프로젝트, 버스핑]
 image: /assets/img/busping-mvp.png
 ---
 

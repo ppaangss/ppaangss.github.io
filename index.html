@@ -18,11 +18,11 @@ layout: default
         {% if post.image %}
         <img class="thumb" src="{{ post.image | relative_url }}" alt="">
         {% else %}
-        <span class="thumb thumb-fallback cat-{{ post.categories.first | default: '기타' }}"></span>
+        <span class="thumb thumb-fallback cat-{{ post.categories | last | default: '기타' }}"></span>
         {% endif %}
         <span class="row-main">
           <span class="row-title">{{ post.title }}</span>
-          <span class="row-cat">{{ post.categories.first }}</span>
+          <span class="row-cat">{{ post.categories | join: " › " }}</span>
         </span>
         <time class="row-date" datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y.%m.%d" }}</time>
       </a>

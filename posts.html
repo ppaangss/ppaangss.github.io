@@ -5,23 +5,24 @@ permalink: /posts/
 ---
 <h1 class="page-title">Posts</h1>
 
-{% for cat in site.categories %}
+{% assign groups = site.posts | group_by_exp: "post", "post.categories | join: ' › '" %}
+{% for group in groups %}
 <section class="cat-group">
   <div class="section-head">
-    <span class="label">{{ cat[0] }}</span>
+    <span class="label">{{ group.name }}</span>
   </div>
   <ul class="post-list">
-    {% for post in cat[1] %}
+    {% for post in group.items %}
     <li>
       <a class="row" href="{{ post.url | relative_url }}">
         {% if post.image %}
         <img class="thumb" src="{{ post.image | relative_url }}" alt="">
         {% else %}
-        <span class="thumb thumb-fallback cat-{{ post.categories.first | default: '기타' }}"></span>
+        <span class="thumb thumb-fallback cat-{{ post.categories | last | default: '기타' }}"></span>
         {% endif %}
         <span class="row-main">
           <span class="row-title">{{ post.title }}</span>
-          <span class="row-cat">{{ post.categories.first }}</span>
+          <span class="row-cat">{{ post.categories | join: " › " }}</span>
         </span>
         <time class="row-date" datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y.%m.%d" }}</time>
       </a>
