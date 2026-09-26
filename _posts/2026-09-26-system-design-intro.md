@@ -1,5 +1,6 @@
 ---
 title: "시스템 디자인이란: 요구사항 → 제약 → 트레이드오프"
+date: 2026-09-26 17:56:00 +0900
 categories: [AI 스터디, 시스템 디자인]
 tags: [시스템디자인, 요구사항, 트레이드오프]
 image: /assets/img/system-design-01-chat-compare.png

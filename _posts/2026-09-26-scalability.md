@@ -1,5 +1,6 @@
 ---
 title: "확장성: 수직 vs 수평, 그리고 무상태 서버"
+date: 2026-09-26 18:07:00 +0900
 categories: [AI 스터디, 시스템 디자인]
 tags: [시스템디자인, 확장성, 무상태서버]
 image: /assets/img/system-design-02-stateless-session.png
