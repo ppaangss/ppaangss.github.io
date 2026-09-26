@@ -4,3 +4,5 @@ _site/
 .DS_Store
 Gemfile.lock
 .obsidian/
+_메모장/
+.trash/
