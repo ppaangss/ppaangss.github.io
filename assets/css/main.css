@@ -358,10 +358,11 @@ main { flex: 1; }
 .post-body h1,
 .post-body h2 {
   padding-top: 16px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border);
   font-size: 22px;
   font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 8px;
 }
 
 .post-body h3 {
