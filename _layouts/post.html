@@ -28,12 +28,12 @@ document.addEventListener('DOMContentLoaded', function () {
   var body = document.querySelector('.post-body');
   var toc = document.querySelector('.toc');
   if (!body || !toc) return;
-  var heads = body.querySelectorAll('h1[id], h2[id]');
+  var heads = body.querySelectorAll('h2[id], h3[id]');
   if (heads.length < 2) return;
   var list = document.createElement('ol');
   heads.forEach(function (h) {
     var li = document.createElement('li');
-    if (h.tagName === 'H2') li.className = 'toc-sub';
+    if (h.tagName === 'H3') li.className = 'toc-sub';
     var a = document.createElement('a');
     a.href = '#' + h.id;
     a.textContent = h.textContent;
