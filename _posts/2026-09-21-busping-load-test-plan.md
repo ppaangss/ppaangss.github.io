@@ -2,11 +2,11 @@
 title: 배포 전 부하테스트 계획
 categories: [프로젝트, 버스핑]
 tags: [부하테스트, SLO, k6]
-image: /assets/img/busping-mvp.png
+image: /assets/img/busping-load-test-plan/busping-mvp.png
 description: "\"유저 100명을 버틴다\"는 막연한 목표를 SLO 기준, 유저 시나리오, 일곱 가지 테스트 계획으로 옮긴 과정."
 ---
 
-![버스핑 앱](/assets/img/busping-mvp.png){: width="300"}
+![버스핑 앱](/assets/img/busping-load-test-plan/busping-mvp.png){: width="300"}
 
 **내가 자주 타는 버스 정류장 근처에 오면 알려주는 서비스, '버스핑'에 대하여 작성한 게시물 입니다.**
 
@@ -82,7 +82,7 @@ p50(중앙값), p99도 같은 원리. 부하테스트에서 평균 대신 백분
 
 그래서 버스핑 유저 1명의 흐름을 생각해봤다.
 
-![버스핑 유저 시나리오](/assets/img/busping-user-flow.png)
+![버스핑 유저 시나리오](/assets/img/busping-load-test-plan/busping-user-flow.png)
 
 1. 평소에는 아무 일도 없다. 앱은 유저가 즐겨찾기한 정류장 근처에 갔을 때만 서버에 위치를 알린다. 유저당 하루 몇 번, 출퇴근 시간에 몰리는 정도다.
 2. 위치를 받은 서버가 알람을 보낸다. "10번, 5분 후 도착 (3정거장 전)".
