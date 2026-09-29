@@ -1,7 +1,7 @@
 ---
 title: "성능을 숫자로 말하기: 지표 읽기와 어림 계산"
 date: 2026-09-28 16:04:00 +0900
-categories: [AI 스터디, 시스템 디자인]
+categories: [시스템 디자인]
 tags: [시스템디자인, 성능지표, 백분위수, 어림계산]
 image: /assets/img/performance-metrics-and-estimation/system-design-03-latency-percentiles.png
 description: "'빠르다'는 말에는 정보가 없다. 지연·처리량·백분위수·가용성으로 시스템을 읽고, 어림 계산으로 설계의 자릿수를 확정하기까지."

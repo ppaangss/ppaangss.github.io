@@ -1,7 +1,7 @@
 ---
 title: "확장성: 수직 vs 수평, 그리고 무상태 서버"
 date: 2026-09-26 18:07:00 +0900
-categories: [AI 스터디, 시스템 디자인]
+categories: [시스템 디자인]
 tags: [시스템디자인, 확장성, 무상태서버]
 image: /assets/img/scalability/system-design-02-stateless-session.png
 description: "확장성은 '빠르다'가 아니다. 수직·수평 확장의 트레이드오프와, 수평 확장의 입장권인 무상태 서버까지."

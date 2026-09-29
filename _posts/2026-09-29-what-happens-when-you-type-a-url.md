@@ -1,7 +1,7 @@
 ---
 title: 브라우저에 URL을 치면 무슨 일이 일어날까
 date: 2026-09-29 21:00:00 +0900
-categories: [AI 스터디, 네트워크]
+categories: [네트워크]
 tags: [네트워크, DNS, TCP, TLS, HTTP, OSI]
 image: /assets/img/url-journey/url-journey-01-url-parsing.png
 description: "주소창에 엔터를 치는 순간 일어나는 일들. URL 파싱부터 DNS, TCP, TLS, HTTP, 라우팅까지 따라가고 OSI 7계층 위에 얹어보기."
