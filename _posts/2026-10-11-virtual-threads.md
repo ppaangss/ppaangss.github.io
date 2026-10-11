@@ -1,6 +1,6 @@
 ---
 title: 가상스레드란?
-date: 2026-10-11 23:10:00 +0900
+date: 2026-10-11 22:55:00 +0900
 categories: [자바]
 tags: [자바, JVM, 가상스레드, 동시성, 톰캣]
 image: /assets/img/virtual-threads/virtual-threads-01-carrier-structure.png
