@@ -471,7 +471,9 @@ main { flex: 1; }
 html { scroll-behavior: smooth; }
 
 .post-body img {
-  max-width: 100%;
+  max-width: min(100%, 620px);
+  display: block;
+  margin: 0 auto;
   border-radius: 8px;
 }
 
