@@ -23,3 +23,4 @@ defaults:
 exclude:
   - docs/
   - README.md
+  - 게시글 목록.md
