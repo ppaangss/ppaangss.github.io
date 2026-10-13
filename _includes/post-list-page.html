@@ -1,0 +1,111 @@
+<div class="posts-head">
+  <h1 class="page-title">{{ include.title }}</h1>
+  {% unless include.simple %}
+  <select id="cat-filter" class="cat-filter" aria-label="카테고리 선택">
+    <option value="">전체 카테고리</option>
+    {% assign paths = "" | split: "" %}
+    {% for post in include.posts %}
+      {% assign p = post.categories | join: " › " %}
+      {% unless paths contains p %}{% assign paths = paths | push: p %}{% endunless %}
+    {% endfor %}
+    {% assign paths = paths | sort %}
+    {% for p in paths %}
+    <option value="{{ p }}">{{ p }}</option>
+    {% endfor %}
+  </select>
+  {% endunless %}
+</div>
+
+<div class="posts-layout">
+<ul class="post-list posts-flat" id="all-posts">
+  {% for post in include.posts %}
+  <li data-cat="{{ post.categories | join: ' › ' }}" data-tags="{{ post.tags | join: ',' }}">
+    <a class="row" href="{{ post.url | relative_url }}">
+      {% if post.image %}
+      <img class="thumb" src="{{ post.image | relative_url }}" alt="">
+      {% else %}
+      <span class="thumb thumb-fallback cat-{{ post.categories | last | default: '기타' }}"></span>
+      {% endif %}
+      <span class="row-main">
+        <span class="row-cat">{{ post.categories | join: " › " }}</span>
+        <span class="row-title">{{ post.title }}</span>
+        {% assign ex = post.description | default: post.excerpt | strip_html | strip_newlines | strip %}
+        {% if ex == "" %}{% assign ex = post.content | strip_html | strip_newlines %}{% endif %}
+        <span class="row-excerpt">{{ ex | truncate: 90 }}</span>
+        <time class="row-date" datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y. %-m. %-d." }}</time>
+      </span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% assign tag_names = "" | split: "" %}
+{% unless include.simple %}
+{% for post in include.posts %}
+  {% for t in post.tags %}
+    {% unless tag_names contains t %}{% assign tag_names = tag_names | push: t %}{% endunless %}
+  {% endfor %}
+{% endfor %}
+{% endunless %}
+{% if tag_names.size > 0 %}
+<aside class="tag-side">
+  <span class="label">TAGS</span>
+  <div class="tag-nav" id="tag-list">
+    {% assign tag_names = tag_names | sort %}
+    {% for t in tag_names %}
+    {% assign cnt = 0 %}
+    {% for p in include.posts %}{% if p.tags contains t %}{% assign cnt = cnt | plus: 1 %}{% endif %}{% endfor %}
+    <button type="button" class="tag" data-tag="{{ t }}">#{{ t }}<span class="tag-count">{{ cnt }}</span></button>
+    {% endfor %}
+  </div>
+</aside>
+{% endif %}
+</div>
+{% unless include.simple %}
+<p class="no-result" id="no-result" hidden>해당하는 글이 없습니다.</p>
+
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var cat = params.get('category') || '';
+  var tag = params.get('tag') || '';
+  var sel = document.getElementById('cat-filter');
+  var tagButtons = document.querySelectorAll('#tag-list .tag');
+  var items = document.querySelectorAll('#all-posts > li');
+  var empty = document.getElementById('no-result');
+
+  if (sel.querySelector('option[value="' + CSS.escape(cat) + '"]') === null) cat = '';
+  sel.value = cat;
+
+  function apply() {
+    var visible = 0;
+    items.forEach(function (li) {
+      var okCat = !cat || li.dataset.cat === cat;
+      var tags = li.dataset.tags ? li.dataset.tags.split(',') : [];
+      var okTag = !tag || tags.indexOf(tag) !== -1;
+      var show = okCat && okTag;
+      li.hidden = !show;
+      if (show) visible++;
+    });
+    empty.hidden = visible > 0;
+    tagButtons.forEach(function (b) {
+      b.classList.toggle('active', b.dataset.tag === tag);
+    });
+    var q = new URLSearchParams();
+    if (cat) q.set('category', cat);
+    if (tag) q.set('tag', tag);
+    var qs = q.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+  }
+
+  sel.addEventListener('change', function () { cat = sel.value; apply(); });
+  tagButtons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      tag = (tag === b.dataset.tag) ? '' : b.dataset.tag;
+      apply();
+    });
+  });
+
+  apply();
+})();
+</script>
+{% endunless %}
