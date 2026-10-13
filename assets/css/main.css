@@ -148,10 +148,13 @@ main { flex: 1; }
   overflow: hidden;
 }
 
-.graph-expand {
+/* 그래프 버튼 공통 — 오른쪽 위에 일렬 (접기 / 배치 초기화 / 화면 맞추기 / 풀스크린) */
+.graph-expand,
+.graph-fit,
+.graph-reset,
+.graph-collapse {
   position: absolute;
   top: 10px;
-  right: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -164,9 +167,60 @@ main { flex: 1; }
   cursor: pointer;
 }
 
-.graph-expand:hover {
+/* 세로 배치 — 위부터 접기, 확대, 배치 초기화, 화면 맞추기 */
+.graph-expand,
+.graph-fit,
+.graph-reset,
+.graph-collapse { right: 10px; }
+
+.graph-collapse { top: 10px; }
+.graph-expand { top: 50px; }
+.graph-reset { top: 90px; }
+.graph-fit { top: 130px; }
+
+.graph-expand:hover,
+.graph-fit:hover,
+.graph-reset:hover,
+.graph-collapse:hover {
   color: var(--text-primary);
   border-color: var(--text-tertiary);
+}
+
+/* 접기 — 박스가 버튼 바 높이로 줄어든다 */
+#graph { transition: height 0.3s ease; }
+
+#graph.collapsed { height: 52px; }
+
+#graph.collapsed > svg,
+#graph.collapsed .graph-hint,
+#graph.collapsed .graph-expand,
+#graph.collapsed .graph-fit,
+#graph.collapsed .graph-reset { display: none; }
+
+.graph-collapse svg { transition: transform 0.25s ease; }
+
+#graph.collapsed .graph-collapse svg { transform: rotate(180deg); }
+
+/* 풀스크린에서는 닫기 버튼 왼쪽에, 닫기 버튼과 같은 룩 */
+.graph-overlay-canvas .graph-fit,
+.graph-overlay-canvas .graph-reset {
+  top: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #cfd3dd;
+}
+
+/* 풀스크린도 세로: 닫기 아래로 초기화, 화면 맞추기 */
+.graph-overlay-canvas .graph-reset { right: 24px; top: 72px; }
+.graph-overlay-canvas .graph-fit { right: 24px; top: 124px; }
+
+.graph-overlay-canvas .graph-fit:hover,
+.graph-overlay-canvas .graph-reset:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 /* 피그마식 조작 — Space 누르면 손바닥 커서 */
@@ -183,6 +237,11 @@ main { flex: 1; }
   position: absolute;
   bottom: 10px;
   right: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-tertiary);
@@ -192,6 +251,10 @@ main { flex: 1; }
 }
 
 #graph:hover .graph-hint { opacity: 1; }
+
+/* 그래프를 조작 중일 때는 힌트를 숨겨 노드와 겹치지 않게 */
+#graph.panning .graph-hint,
+.graph-overlay-canvas.panning .graph-hint { opacity: 0; }
 
 /* 터치 기기: 호버가 없어 인라인 힌트는 숨긴다 (풀스크린 힌트는 유지) */
 @media (hover: none) {
@@ -317,11 +380,44 @@ main { flex: 1; }
 .graph-space .graph-node.ghost:hover circle { fill: #565e7a; }
 .graph-space .graph-node.ghost:hover text { fill: #a6acbd; }
 
+/* 카테고리 — 노란 별 (클릭 대상 아님) */
+.graph-node.cat { cursor: default; }
+
+.graph-space .graph-node.cat circle {
+  fill: #ffd66e;
+  filter: drop-shadow(0 0 8px rgba(255, 205, 100, 0.55));
+}
+
+.graph-space .graph-node.cat:hover circle {
+  fill: #ffe49a;
+  filter: drop-shadow(0 0 12px rgba(255, 215, 130, 0.8));
+}
+
+/* CS 루트 — 빨간 별 (클릭 대상 아님) */
+.graph-node.root { cursor: default; }
+
+.graph-space .graph-node.root circle {
+  fill: #ff6e62;
+  filter: drop-shadow(0 0 10px rgba(255, 110, 98, 0.6));
+}
+
+.graph-space .graph-node.root:hover circle {
+  fill: #ff968c;
+  filter: drop-shadow(0 0 14px rgba(255, 130, 115, 0.85));
+}
+
+.graph-space .graph-node.root text {
+  font-size: 13px;
+  font-weight: 600;
+  fill: #e8ebf2;
+}
+
 .graph-overlay .graph-hint {
   left: 50%;
   right: auto;
   bottom: 22px;
   transform: translateX(-50%);
+  background: rgba(10, 11, 18, 0.72);
   color: #6b7080;
   opacity: 1;
 }

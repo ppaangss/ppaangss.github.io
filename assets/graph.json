@@ -5,28 +5,32 @@
       "title": "트랜잭션의 개념과 내부 동작",
       "group": "DB",
       "url": "/posts/transaction-internals/",
-      "published": true
+      "published": true,
+      "chars": 4129
     },
     {
       "id": "url-to-rendering",
       "title": "URL 입력부터 페이지 렌더링까지",
       "group": "네트워크",
       "url": "/posts/url-to-rendering/",
-      "published": true
+      "published": true,
+      "chars": 4710
     },
     {
       "id": "jvm-internals",
       "title": "JVM의 동작 원리",
       "group": "자바",
       "url": "/posts/jvm-internals/",
-      "published": true
+      "published": true,
+      "chars": 4474
     },
     {
       "id": "process-and-thread",
       "title": "프로세스와 스레드",
       "group": "OS",
       "url": "/posts/process-and-thread/",
-      "published": true
+      "published": true,
+      "chars": 4204
     }
   ],
   "links": []
