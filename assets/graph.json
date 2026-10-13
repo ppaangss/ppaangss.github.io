@@ -13,6 +13,13 @@
       "group": "네트워크",
       "url": "/posts/url-to-rendering/",
       "published": true
+    },
+    {
+      "id": "jvm-internals",
+      "title": "JVM의 동작 원리",
+      "group": "자바",
+      "url": "/posts/jvm-internals/",
+      "published": true
     }
   ],
   "links": []
