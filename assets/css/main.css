@@ -29,7 +29,12 @@
 /* 사이트 전체 밤하늘 배경 (다크 모드에서 space-bg.js가 깐다) */
 .space-bg {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* 모바일 주소창이 접혔다 펴져도 크기가 안 변하게 큰 뷰포트 기준 고정 높이 */
+  height: 100vh;
+  height: 100lvh;
   z-index: -1;
   background: radial-gradient(ellipse 120% 90% at 50% 35%, #0c0e17 0%, #07080d 55%, #030304 100%);
 }
