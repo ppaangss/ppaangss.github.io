@@ -25,6 +25,16 @@ layout: default
 </article>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  // img-row: 각 사진의 너비를 가로세로 비율에 비례해 배분해서 한 줄의 높이를 맞춘다
+  document.querySelectorAll('.post-body .img-row img').forEach(function (img) {
+    function fit() {
+      if (img.naturalWidth && img.naturalHeight) {
+        img.style.flex = (img.naturalWidth / img.naturalHeight) + ' 1 0%';
+      }
+    }
+    if (img.complete) fit(); else img.addEventListener('load', fit);
+  });
+
   var body = document.querySelector('.post-body');
   var toc = document.querySelector('.toc');
   if (!body || !toc) return;

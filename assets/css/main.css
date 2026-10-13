@@ -477,6 +477,22 @@ html { scroll-behavior: smooth; }
   border-radius: 8px;
 }
 
+.post-body .img-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: flex-start;
+  margin: 1em auto;
+}
+
+.post-body .img-row img {
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
 .post-body code {
   font-family: var(--font-mono);
   font-size: 0.875em;
