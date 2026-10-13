@@ -6,7 +6,7 @@ tags: [DB, 트랜잭션, ACID, undo-log, redo-log, WAL]
 image: /assets/img/transaction-internals/transaction-internals-02-commit-flow.png
 description: "전부 성공 아니면 전부 취소라는 보장은 공짜가 아니다. ACID에서 출발해 undo 로그와 redo 로그, WAL까지, 커밋 한 번에 데이터베이스 안에서 일어나는 일을 따라간다."
 ---
-3
+
 ## 개요
 
 계좌 이체는 UPDATE 두 번이다. 내 계좌에서 돈을 빼는 문장이 하나, 상대 계좌에 돈을 넣는 문장이 하나 필요하다. 그런데 첫 번째 UPDATE가 끝난 직후 서버가 죽으면 어떻게 될까. 내 잔액은 줄었는데 상대 잔액은 그대로인, 한쪽 갱신만 반영된 상태로 남는다. 두 계좌의 합이 맞지 않는 심각한 문제가 발생하는 것이다.
