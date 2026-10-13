@@ -11,7 +11,7 @@
   fetch(box.dataset.src)
     .then(function (res) { return res.json(); })
     .then(function (data) {
-      renderGraph(box, data, { space: true, stars: false, spread: 1, observeResize: true });
+      renderGraph(box, data, { space: true, stars: false, spread: 1, observeResize: true, springBack: true });
       addExpandButton(box, data);
       addCollapseButton(box);
       if (window.location.hash === "#graph-full") openOverlay(data);
@@ -126,6 +126,28 @@
     simulation.stop();
     for (var i = 0; i < 300; i++) simulation.tick();
 
+    /* 스프링백 모드 — 기본 배치를 집 좌표로 기억해 두고, 드래그가 끝나면 복귀 */
+    function saveHome() {
+      nodes.forEach(function (d) { d.hx = d.x; d.hy = d.y; });
+    }
+    if (opts.springBack) saveHome();
+
+    function springHome() {
+      var from = nodes.map(function (d) { return [d.x, d.y]; });
+      zoomLayer.transition("spring-back")
+        .duration(600)
+        .ease(d3.easeCubicOut)
+        .tween("positions", function () {
+          return function (t) {
+            nodes.forEach(function (d, i) {
+              d.x = from[i][0] + (d.hx - from[i][0]) * t;
+              d.y = from[i][1] + (d.hy - from[i][1]) * t;
+            });
+            ticked();
+          };
+        });
+    }
+
     var link = zoomLayer.append("g")
       .selectAll("line")
       .data(links)
@@ -149,6 +171,7 @@
             return !space.held && !event.ctrlKey && !event.button && d.kind !== "root";
           })
           .on("start", function (event, d) {
+            if (opts.springBack) zoomLayer.interrupt("spring-back");
             if (!event.active) simulation.alphaTarget(0.3).restart();
             container.classList.add("panning");
             d.fx = d.x;
@@ -163,6 +186,11 @@
             container.classList.remove("panning");
             d.fx = null;
             d.fy = null;
+            if (opts.springBack) {
+              /* 흐트러진 배치를 기본 형태로 되돌린다 */
+              simulation.stop();
+              springHome();
+            }
           })
       )
       .on("click", function (event, d) {
@@ -285,22 +313,26 @@
         });
     }
 
-    /* 화면 맞추기(카메라만) + 배치 초기화 버튼 */
-    container.appendChild(makeButton(
-      "graph-fit", "화면에 맞추기",
-      '<circle cx="12" cy="12" r="6"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
-      function () { fitView(true); }
-    ));
-    container.appendChild(makeButton(
-      "graph-reset", "배치 초기화",
-      '<path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/>',
-      resetLayout
-    ));
+    /* 화면 맞추기(카메라만) + 배치 초기화 버튼 —
+       스프링백(인라인 박스)에서는 배치가 안 바뀌므로 두 버튼 모두 생략 */
+    if (!opts.springBack) {
+      container.appendChild(makeButton(
+        "graph-fit", "화면에 맞추기",
+        '<circle cx="12" cy="12" r="6"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+        function () { fitView(true); }
+      ));
+      container.appendChild(makeButton(
+        "graph-reset", "배치 초기화",
+        '<path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/>',
+        resetLayout
+      ));
+    }
 
     /* 박스 크기가 바뀌면 viewBox를 맞추고, 새 비율에 맞춰 노드들이
        다시 균형을 잡도록 시뮬레이션을 재가동한다 (끝나면 다시 핏) */
     var pendingFit = false;
     simulation.on("end.fit", function () {
+      if (opts.springBack) saveHome(); /* 리사이즈 재배치 후 새 기본 배치를 집으로 */
       if (pendingFit) {
         pendingFit = false;
         fitView();

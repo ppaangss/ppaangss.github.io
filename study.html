@@ -4,10 +4,9 @@ title: CS
 permalink: /study/
 ---
 <section class="graph-section study-graph">
-  <div class="section-head">
-    <span class="label">KNOWLEDGE GRAPH</span>
+  <div id="graph" data-src="{{ '/assets/graph.json' | relative_url }}">
+    <span class="graph-title label">KNOWLEDGE GRAPH</span>
   </div>
-  <div id="graph" data-src="{{ '/assets/graph.json' | relative_url }}"></div>
 </section>
 
 {% assign study_posts = site.posts | where_exp: "p", "p.path contains '_posts/study/'" %}
