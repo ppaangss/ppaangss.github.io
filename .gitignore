@@ -4,9 +4,9 @@ _site/
 .DS_Store
 Gemfile.lock
 .obsidian/
-_메모장/
+__메모장/
 _초안/
 _직접 초안/
-_자동 초안/
+excalidraw/
 CLAUDE.md
 .trash/
