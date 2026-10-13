@@ -3,5 +3,15 @@ layout: default
 title: Study
 permalink: /study/
 ---
+<section class="graph-section study-graph">
+  <div class="section-head">
+    <span class="label">KNOWLEDGE GRAPH</span>
+  </div>
+  <div id="graph" data-src="{{ '/assets/graph.json' | relative_url }}"></div>
+</section>
+
 {% assign study_posts = site.posts | where_exp: "p", "p.path contains '_posts/study/'" %}
 {% include post-list-page.html title="Study" posts=study_posts %}
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
+<script src="{{ '/assets/js/graph.js' | relative_url }}" defer></script>

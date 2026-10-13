@@ -127,6 +127,190 @@ main { flex: 1; }
 
 .more:hover { color: var(--text-primary); }
 
+/* 홈 지식 그래프 */
+.graph-section { padding-top: 88px; }
+
+#graph {
+  position: relative;
+  height: 420px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.graph-expand {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.graph-expand:hover {
+  color: var(--text-primary);
+  border-color: var(--text-tertiary);
+}
+
+/* 피그마식 조작 — Space 누르면 손바닥 커서 */
+#graph.space-pan,
+.graph-overlay-canvas.space-pan { cursor: grab; }
+
+#graph.space-pan.panning,
+.graph-overlay-canvas.space-pan.panning { cursor: grabbing; }
+
+#graph.space-pan .graph-node,
+.graph-overlay-canvas.space-pan .graph-node { cursor: inherit; }
+
+.graph-hint {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+#graph:hover .graph-hint { opacity: 1; }
+
+#graph svg { display: block; }
+
+.graph-link {
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+
+.graph-node { cursor: pointer; }
+
+.graph-node circle {
+  fill: var(--text-tertiary);
+  transition: fill 0.15s;
+}
+
+.graph-node text {
+  fill: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  transition: fill 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.graph-node:hover circle { fill: var(--accent); }
+.graph-node:hover text { fill: var(--text-primary); }
+
+/* 미발행 위키 주제 — 흐린 노드, 클릭 불가 */
+.graph-node.ghost { cursor: default; }
+.graph-node.ghost circle { fill: var(--border); }
+.graph-node.ghost text { fill: var(--text-tertiary); font-size: 11px; }
+.graph-node.ghost:hover circle { fill: var(--text-tertiary); }
+.graph-node.ghost:hover text { fill: var(--text-secondary); }
+
+/* 풀스크린 우주 모드 — 라이트 모드에서도 항상 어두운 밤하늘 */
+.graph-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: radial-gradient(ellipse 120% 90% at 50% 35%, #12141f 0%, #0a0b12 55%, #060609 100%);
+  animation: graph-overlay-in 0.25s ease;
+}
+
+@keyframes graph-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.graph-overlay-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.graph-overlay-canvas svg { display: block; }
+
+.graph-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #cfd3dd;
+  cursor: pointer;
+}
+
+.graph-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.star {
+  fill: #ffffff;
+  animation: star-twinkle 3s ease-in-out infinite alternate;
+}
+
+@keyframes star-twinkle {
+  from { opacity: 0.1; }
+  to { opacity: 0.65; }
+}
+
+.graph-overlay .graph-link {
+  stroke: rgba(170, 185, 220, 0.16);
+  stroke-width: 1.2;
+}
+
+.graph-overlay .graph-node circle {
+  fill: #8ab0ff;
+  filter: drop-shadow(0 0 7px rgba(110, 168, 255, 0.65));
+}
+
+.graph-overlay .graph-node text {
+  fill: #c3c8d4;
+  font-size: 12px;
+}
+
+.graph-overlay .graph-node:hover circle {
+  fill: #b8d2ff;
+  filter: drop-shadow(0 0 12px rgba(140, 185, 255, 0.95));
+}
+
+.graph-overlay .graph-node:hover text { fill: #ffffff; }
+
+.graph-overlay .graph-node.ghost circle {
+  fill: #3c4257;
+  filter: drop-shadow(0 0 4px rgba(150, 165, 215, 0.3));
+}
+
+.graph-overlay .graph-node.ghost text {
+  fill: #767c8d;
+  font-size: 11px;
+}
+
+.graph-overlay .graph-node.ghost:hover circle { fill: #565e7a; }
+.graph-overlay .graph-node.ghost:hover text { fill: #a6acbd; }
+
+.graph-overlay .graph-hint {
+  left: 50%;
+  right: auto;
+  bottom: 22px;
+  transform: translateX(-50%);
+  color: #6b7080;
+  opacity: 1;
+}
+
 .recent { padding-top: 88px; }
 
 /* 글 목록 */
