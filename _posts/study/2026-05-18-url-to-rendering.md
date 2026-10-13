@@ -1,6 +1,6 @@
 ---
 title: URL 입력부터 페이지 렌더링까지
-date: 2026-10-13 18:30:00 +0900
+date: 2026-05-18 11:38:00 +0900
 categories: [네트워크]
 tags: [네트워크, URL, DNS, TCP, TLS, HTTP, 렌더링, OSI-7계층]
 image: /assets/img/url-to-rendering/url-to-rendering-01-journey-overview.png

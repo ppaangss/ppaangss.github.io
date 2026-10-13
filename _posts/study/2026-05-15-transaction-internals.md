@@ -1,6 +1,6 @@
 ---
 title: 트랜잭션의 개념과 내부 동작
-date: 2026-10-13 16:02:00 +0900
+date: 2026-05-15 20:59:00 +0900
 categories: [DB]
 tags: [DB, 트랜잭션, ACID, undo-log, redo-log, WAL]
 image: /assets/img/transaction-internals/transaction-internals-02-commit-flow.png
