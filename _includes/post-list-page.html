@@ -1,8 +1,8 @@
 <div class="posts-head">
   <h1 class="page-title">{{ include.title }}</h1>
   {% unless include.simple %}
-  <select id="cat-filter" class="cat-filter" aria-label="카테고리 선택">
-    <option value="">전체 카테고리</option>
+  <nav class="cat-nav" id="cat-nav" aria-label="카테고리 선택">
+    <button type="button" class="cat-link" data-cat="">전체</button>
     {% assign paths = "" | split: "" %}
     {% for post in include.posts %}
       {% assign p = post.categories | join: " › " %}
@@ -10,9 +10,9 @@
     {% endfor %}
     {% assign paths = paths | sort %}
     {% for p in paths %}
-    <option value="{{ p }}">{{ p }}</option>
+    <button type="button" class="cat-link" data-cat="{{ p }}">{{ p }}</button>
     {% endfor %}
-  </select>
+  </nav>
   {% endunless %}
 </div>
 
@@ -68,13 +68,14 @@
   var params = new URLSearchParams(location.search);
   var cat = params.get('category') || '';
   var tag = params.get('tag') || '';
-  var sel = document.getElementById('cat-filter');
+  var catButtons = document.querySelectorAll('#cat-nav .cat-link');
   var tagButtons = document.querySelectorAll('#tag-list .tag');
   var items = document.querySelectorAll('#all-posts > li');
   var empty = document.getElementById('no-result');
 
-  if (sel.querySelector('option[value="' + CSS.escape(cat) + '"]') === null) cat = '';
-  sel.value = cat;
+  var validCat = false;
+  catButtons.forEach(function (b) { if (b.dataset.cat === cat) validCat = true; });
+  if (!validCat) cat = '';
 
   function apply() {
     var visible = 0;
@@ -87,6 +88,9 @@
       if (show) visible++;
     });
     empty.hidden = visible > 0;
+    catButtons.forEach(function (b) {
+      b.classList.toggle('active', b.dataset.cat === cat);
+    });
     tagButtons.forEach(function (b) {
       b.classList.toggle('active', b.dataset.tag === tag);
     });
@@ -97,7 +101,12 @@
     history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
   }
 
-  sel.addEventListener('change', function () { cat = sel.value; apply(); });
+  catButtons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      cat = b.dataset.cat;
+      apply();
+    });
+  });
   tagButtons.forEach(function (b) {
     b.addEventListener('click', function () {
       tag = (tag === b.dataset.tag) ? '' : b.dataset.tag;

@@ -380,8 +380,8 @@ main { flex: 1; }
 .graph-space .graph-node.ghost:hover circle { fill: #565e7a; }
 .graph-space .graph-node.ghost:hover text { fill: #a6acbd; }
 
-/* 카테고리 — 노란 별 (클릭 대상 아님) */
-.graph-node.cat { cursor: default; }
+/* 카테고리 — 노란 별 (클릭 시 해당 카테고리 목록으로) */
+.graph-node.cat { cursor: pointer; }
 
 .graph-space .graph-node.cat circle {
   fill: #ffd66e;
@@ -393,8 +393,8 @@ main { flex: 1; }
   filter: drop-shadow(0 0 12px rgba(255, 215, 130, 0.8));
 }
 
-/* CS 루트 — 빨간 별 (클릭 대상 아님) */
-.graph-node.root { cursor: default; }
+/* CS 루트 — 빨간 별 (클릭 시 CS 전체 목록으로) */
+.graph-node.root { cursor: pointer; }
 
 .graph-space .graph-node.root circle {
   fill: #ff6e62;
@@ -513,31 +513,35 @@ main { flex: 1; }
 
 .posts-head {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 28px;
   padding-top: 90px;
 }
 
 .posts-head .page-title { padding-top: 0; }
 
-.cat-filter {
-  appearance: none;
-  -webkit-appearance: none;
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 34px 8px 14px;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  cursor: pointer;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
+/* 제목 옆 카테고리 나열 */
+.cat-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
 }
 
-.cat-filter:hover { color: var(--text-primary); border-color: var(--text-tertiary); }
+.cat-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.cat-link:hover { color: var(--text-primary); }
+
+.cat-link.active { color: var(--accent); font-weight: 600; }
 
 /* 목록 + 태그 사이드바 2단 */
 .posts-layout {

@@ -166,8 +166,14 @@
           })
       )
       .on("click", function (event, d) {
-        if (d.published && !space.held && !event.defaultPrevented) {
+        if (space.held || event.defaultPrevented) return;
+        if (d.published && d.url) {
           window.location.href = d.url;
+        } else if (d.kind === "category") {
+          /* 노란 별 → 해당 카테고리로 필터된 CS 목록 */
+          window.location.href = "/study/?category=" + encodeURIComponent(d.title);
+        } else if (d.kind === "root") {
+          window.location.href = "/study/";
         }
       });
 
