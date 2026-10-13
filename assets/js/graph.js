@@ -11,7 +11,7 @@
   fetch(box.dataset.src)
     .then(function (res) { return res.json(); })
     .then(function (data) {
-      renderGraph(box, data, { space: false });
+      renderGraph(box, data, { space: true, stars: false, spread: 1 });
       addExpandButton(box, data);
       if (window.location.hash === "#graph-full") openOverlay(data);
     })
@@ -20,7 +20,9 @@
   function renderGraph(container, data, opts) {
     var width = container.clientWidth;
     var height = container.clientHeight;
-    var spread = opts.space ? 1.6 : 1;
+    var spread = opts.spread || 1;
+
+    if (opts.space) container.classList.add("graph-space");
 
     var nodes = data.nodes.map(function (d) { return Object.assign({}, d); });
     var links = data.links.map(function (d) { return Object.assign({}, d); });
@@ -30,8 +32,8 @@
       .attr("width", "100%")
       .attr("height", "100%");
 
-    /* 우주 모드 — 줌에 영향 받지 않는 별 배경 */
-    if (opts.space) {
+    /* 풀스크린 — 줌에 영향 받지 않는 별 배경 (인라인 박스는 사이트 배경 별이 비친다) */
+    if (opts.stars) {
       var stars = svg.append("g");
       for (var s = 0; s < 160; s++) {
         stars.append("circle")
@@ -50,9 +52,12 @@
       .scaleExtent([0.3, 3])
       .filter(function (event) {
         /* 휠은 ⌘/Ctrl을 누를 때만 줌 (기본 휠은 페이지 스크롤로 통과),
-           배경 드래그 이동은 Space를 누르고 있을 때만, 터치는 그대로 */
+           배경 드래그 이동은 Space를 누르고 있을 때만.
+           터치는 인라인에서 핀치(두 손가락)만 받아 한 손가락 스크롤을 살리고,
+           풀스크린에서는 한 손가락 이동도 허용 */
         if (event.type === "wheel") return event.metaKey || event.ctrlKey;
         if (event.type === "mousedown") return space.held && !event.button;
+        if (event.type === "touchstart") return opts.touchPan || event.touches.length > 1;
         return !event.button;
       })
       .on("start", function () { container.classList.add("panning"); })
@@ -61,12 +66,16 @@
 
     svg.call(zoom).on("dblclick.zoom", null);
 
+    /* 인라인 박스에서는 세로 스와이프가 페이지 스크롤로 통과해야 한다
+       (d3가 기본으로 touch-action: none을 걸어버리므로 되돌림) */
+    if (!opts.touchPan) svg.style("touch-action", "pan-y");
+
     var simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(function (d) { return d.id; }).distance(90 * spread))
       .force("charge", d3.forceManyBody().strength(-450 * spread))
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("x", d3.forceX(width / 2).strength(0.08))
-      .force("y", d3.forceY(height / 2).strength(opts.space ? 0.1 : 0.22))
+      .force("y", d3.forceY(height / 2).strength(spread > 1 ? 0.1 : 0.22))
       .force("collide", d3.forceCollide((nodes.length < 8 ? 120 : 48) * spread));
 
     /* 미리 돌려서 안정된 배치로 시작 (드래그하면 다시 살아난다) */
@@ -139,11 +148,12 @@
     /* 그래프 전체가 뷰에 들어오게 자동 핏 */
     var xs = nodes.map(function (d) { return d.x; });
     var ys = nodes.map(function (d) { return d.y; });
-    var pad = 70;
-    var minX = Math.min.apply(null, xs) - pad;
-    var maxX = Math.max.apply(null, xs) + pad;
-    var minY = Math.min.apply(null, ys) - pad;
-    var maxY = Math.max.apply(null, ys) + pad;
+    var padX = 110; /* 라벨이 노드 좌우로 뻗으므로 가로 여백을 넉넉히 */
+    var padY = 60;
+    var minX = Math.min.apply(null, xs) - padX;
+    var maxX = Math.max.apply(null, xs) + padX;
+    var minY = Math.min.apply(null, ys) - padY;
+    var maxY = Math.max.apply(null, ys) + padY;
     var scale = Math.min(width / (maxX - minX), height / (maxY - minY), 1.2);
     var tx = width / 2 - scale * (minX + maxX) / 2;
     var ty = height / 2 - scale * (minY + maxY) / 2;
@@ -152,7 +162,9 @@
     /* 조작 힌트 */
     var hint = document.createElement("span");
     hint.className = "graph-hint";
-    hint.textContent = "Space+드래그 이동 · ⌘+스크롤 확대";
+    hint.textContent = window.matchMedia("(hover: none)").matches
+      ? "드래그 이동 · 핀치 확대"
+      : "Space+드래그 이동 · ⌘+스크롤 확대";
     container.appendChild(hint);
 
     /* Space 키 추적 — 그래프 위에 있을 때만 페이지 스크롤 차단 */
@@ -217,7 +229,7 @@
     document.body.appendChild(overlay);
     document.body.style.overflow = "hidden";
 
-    var cleanupRender = renderGraph(canvas, data, { space: true });
+    var cleanupRender = renderGraph(canvas, data, { space: true, stars: true, spread: 1.6, touchPan: true });
 
     function close() {
       cleanupRender();
@@ -240,7 +252,7 @@
       resizeTimer = setTimeout(function () {
         cleanupRender();
         canvas.innerHTML = "";
-        cleanupRender = renderGraph(canvas, data, { space: true });
+        cleanupRender = renderGraph(canvas, data, { space: true, stars: true, spread: 1.6, touchPan: true });
       }, 200);
     }
 

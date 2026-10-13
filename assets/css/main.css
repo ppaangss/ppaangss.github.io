@@ -26,6 +26,16 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* 사이트 전체 밤하늘 배경 (다크 모드에서 space-bg.js가 깐다) */
+.space-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(ellipse 120% 90% at 50% 35%, #0c0e17 0%, #07080d 55%, #030304 100%);
+}
+
+.space-bg svg { display: block; width: 100%; height: 100%; }
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {
@@ -183,6 +193,11 @@ main { flex: 1; }
 
 #graph:hover .graph-hint { opacity: 1; }
 
+/* 터치 기기: 호버가 없어 인라인 힌트는 숨긴다 (풀스크린 힌트는 유지) */
+@media (hover: none) {
+  #graph .graph-hint { display: none; }
+}
+
 #graph svg { display: block; }
 
 .graph-link {
@@ -221,7 +236,7 @@ main { flex: 1; }
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: radial-gradient(ellipse 120% 90% at 50% 35%, #12141f 0%, #0a0b12 55%, #060609 100%);
+  background: radial-gradient(ellipse 120% 90% at 50% 35%, #0c0e17 0%, #07080d 55%, #030304 100%);
   animation: graph-overlay-in 0.25s ease;
 }
 
@@ -267,40 +282,40 @@ main { flex: 1; }
   to { opacity: 0.65; }
 }
 
-.graph-overlay .graph-link {
+.graph-space .graph-link {
   stroke: rgba(170, 185, 220, 0.16);
   stroke-width: 1.2;
 }
 
-.graph-overlay .graph-node circle {
+.graph-space .graph-node circle {
   fill: #8ab0ff;
   filter: drop-shadow(0 0 7px rgba(110, 168, 255, 0.65));
 }
 
-.graph-overlay .graph-node text {
+.graph-space .graph-node text {
   fill: #c3c8d4;
   font-size: 12px;
 }
 
-.graph-overlay .graph-node:hover circle {
+.graph-space .graph-node:hover circle {
   fill: #b8d2ff;
   filter: drop-shadow(0 0 12px rgba(140, 185, 255, 0.95));
 }
 
-.graph-overlay .graph-node:hover text { fill: #ffffff; }
+.graph-space .graph-node:hover text { fill: #ffffff; }
 
-.graph-overlay .graph-node.ghost circle {
+.graph-space .graph-node.ghost circle {
   fill: #3c4257;
   filter: drop-shadow(0 0 4px rgba(150, 165, 215, 0.3));
 }
 
-.graph-overlay .graph-node.ghost text {
+.graph-space .graph-node.ghost text {
   fill: #767c8d;
   font-size: 11px;
 }
 
-.graph-overlay .graph-node.ghost:hover circle { fill: #565e7a; }
-.graph-overlay .graph-node.ghost:hover text { fill: #a6acbd; }
+.graph-space .graph-node.ghost:hover circle { fill: #565e7a; }
+.graph-space .graph-node.ghost:hover text { fill: #a6acbd; }
 
 .graph-overlay .graph-hint {
   left: 50%;
@@ -752,6 +767,15 @@ html { scroll-behavior: smooth; }
   .hero { padding-top: 64px; }
   .recent { padding-top: 64px; }
   .post-title { font-size: 26px; }
+
+  /* 헤더가 가로로 넘치지 않게 */
+  .brand { gap: 10px; }
+  .logo { font-size: 15px; }
+  .site-nav { gap: 16px; }
+  .site-nav a { font-size: 14px; }
+
+  .graph-section { padding-top: 64px; }
+  #graph { height: 300px; }
 
   /* 목록: 세로 스택 카드 — 이미지 풀폭 상단 */
   .post-list .row {
