@@ -20,6 +20,13 @@
       "group": "자바",
       "url": "/posts/jvm-internals/",
       "published": true
+    },
+    {
+      "id": "process-and-thread",
+      "title": "프로세스와 스레드",
+      "group": "OS",
+      "url": "/posts/process-and-thread/",
+      "published": true
     }
   ],
   "links": []
