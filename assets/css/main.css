@@ -719,6 +719,12 @@ body:has(.graph-bg) { position: relative; }
   to { opacity: 0.65; }
 }
 
+/* 모바일 — 작은 화면에서 별 수백 개가 깜빡이면 눈이 아프므로 은은한 밝기로 멈춰 둔다
+   (처음 들어갈 때 전부 밝게 떴다가 하나씩 흐려지는 현상도 같이 없어진다) */
+@media (max-width: 730px) {
+  .star { animation: none; opacity: 0.35; }
+}
+
 .graph-space .graph-link {
   stroke: rgba(170, 185, 220, 0.16);
   stroke-width: 1.2;
