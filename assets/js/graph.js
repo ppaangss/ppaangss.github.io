@@ -204,6 +204,14 @@
       .join("line")
       .attr("class", "graph-link");
 
+    /* 배경 모드의 인기글 — 별에서 가운데 카드까지 잇는 선 */
+    var featured = opts.background && opts.featuredOn ? nodes.filter(function (d) { return d.featured; }) : [];
+    var featLine = zoomLayer.append("g")
+      .selectAll("line")
+      .data(featured)
+      .join("line")
+      .attr("class", "featured-link");
+
     var node = zoomLayer.append("g")
       .selectAll("g")
       .data(nodes)
@@ -211,6 +219,7 @@
       .attr("class", function (d) {
         if (d.kind === "root") return "graph-node root";
         if (d.kind === "category") return "graph-node cat";
+        if (opts.background && opts.featuredOn && d.featured) return "graph-node featured";
         return d.published ? "graph-node" : "graph-node ghost";
       })
       .call(
@@ -263,13 +272,46 @@
       return d.chars ? 6.5 + charNorm(d.chars) * 4.5 : 8;
     });
 
-    /* 배경 모드는 별만 — 라벨 없음 */
-    if (!opts.background) {
-      node.append("text")
-        .attr("dy", 26)
-        .attr("text-anchor", "middle")
-        .text(function (d) { return d.title; });
+    /* 배경 모드는 별만 — 라벨은 인기글 별에만, 마우스를 올리거나 선택했을 때 */
+    node.filter(function (d) { return !opts.background || (opts.featuredOn && d.featured); })
+      .append("text")
+      .attr("dy", 26)
+      .attr("text-anchor", "middle")
+      .text(function (d) { return d.title; });
+
+    /* 인기글 별 클릭 영역 — 배경은 본문 아래에 깔려 클릭이 닿지 않으므로,
+       본문 위의 투명 레이어(opts.hitLayer)에 별 위치를 따라다니는 버튼을 둔다 */
+    var hits = [];
+    if (opts.hitLayer) {
+      opts.hitLayer.innerHTML = "";
+      hits = featured.map(function (d) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "graph-hit-star";
+        b.setAttribute("aria-label", d.title + " 자세히 보기");
+        b.addEventListener("mouseenter", function () { setHover(d.id, true); });
+        b.addEventListener("mouseleave", function () { setHover(d.id, false); });
+        b.addEventListener("click", function (event) {
+          event.stopPropagation();
+          if (opts.onSelect) opts.onSelect(d.id);
+        });
+        opts.hitLayer.appendChild(b);
+        return b;
+      });
     }
+
+    function setHover(id, on) {
+      node.filter(function (d) { return d.id === id; }).classed("hover", on);
+      featLine.filter(function (d) { return d.id === id; }).classed("hover", on);
+    }
+
+    /* 선택 상태(opts.state.active)를 별·선에 반영 */
+    function syncActive() {
+      var active = opts.state ? opts.state.active : null;
+      node.classed("active", function (d) { return d.featured && d.id === active; });
+      featLine.classed("active", function (d) { return d.id === active; });
+    }
+    syncActive();
 
     function ticked() {
       link
@@ -281,6 +323,19 @@
       node.attr("transform", function (d) {
         return "translate(" + d.x + "," + d.y + ")";
       });
+
+      if (featured.length) {
+        /* 선 끝은 카드 위·아래 변의 가운데 */
+        featLine.each(function (d) {
+          var a = opts.anchor ? opts.anchor(d.id) : null;
+          d3.select(this)
+            .attr("x1", d.x).attr("y1", d.y)
+            .attr("x2", a ? a[0] : d.x).attr("y2", a ? a[1] : d.y);
+        });
+        hits.forEach(function (b, i) {
+          b.style.transform = "translate(" + featured[i].x + "px," + featured[i].y + "px)";
+        });
+      }
     }
 
     simulation.on("tick", ticked);
@@ -395,6 +450,13 @@
         d.phase = Math.random() * Math.PI * 2;
         d.speed = 0.00018 + Math.random() * 0.00022;
         d.amp = 6 + Math.random() * 8;
+        /* 인기글 별은 가운데 카드 옆으로 옮기고, 카드와 겹치지 않게 덜 흔들리게 */
+        var spot = opts.featuredOn && d.featured && opts.placeFeatured ? opts.placeFeatured(d.id) : null;
+        if (spot) {
+          d.bx = d.x = d.tx = spot[0];
+          d.by = d.y = d.ty = spot[1];
+          d.amp = 3;
+        }
       });
       ticked();
     }
@@ -403,6 +465,11 @@
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       (function frame(t) {
         nodes.forEach(function (d) {
+          /* 인기글 별은 카드가 움직이면 새 자리(tx, ty)로 부드럽게 따라간다 */
+          if (d.tx != null) {
+            d.bx += (d.tx - d.bx) * 0.12;
+            d.by += (d.ty - d.by) * 0.12;
+          }
           d.x = d.bx + Math.cos(t * d.speed + d.phase) * d.amp;
           d.y = d.by + Math.sin(t * d.speed * 1.3 + d.phase) * d.amp;
         });
@@ -546,10 +613,27 @@
 
     function cleanup() {
       if (driftFrame) cancelAnimationFrame(driftFrame);
+      if (opts.hitLayer) opts.hitLayer.innerHTML = "";
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("keyup", onKeyUp);
       if (resizeObserver) resizeObserver.disconnect();
     }
+
+    cleanup.sync = syncActive;
+
+    /* 카드 배치가 바뀌었을 때 인기글 별 자리를 다시 잡는다 */
+    cleanup.replace = function () {
+      if (!opts.placeFeatured) return;
+      featured.forEach(function (d) {
+        var spot = opts.placeFeatured(d.id);
+        if (!spot) return;
+        d.tx = spot[0];
+        d.ty = spot[1];
+        if (!driftFrame) { d.bx = d.x = d.tx; d.by = d.y = d.ty; }
+      });
+      if (!driftFrame) ticked();
+    };
+    cleanup.hover = setHover;
 
     /* 퇴장 연출 — 별들이 targets(별 id → 화면 좌표)로 돌아간 뒤 done 호출 */
     cleanup.outro = function (targets, done) {
@@ -577,10 +661,136 @@
 
   /* 홈 배경 그래프 — 페이지 크기가 바뀌면(창 크기, 이미지 로딩으로 길어짐) 통째로 다시 펼친다 */
   function renderBackground(layer, data) {
-    var opts = { space: true, stars: false, spread: 1.3, background: true };
-    var cleanup = renderGraph(layer, data, opts);
-    var lastW = layer.clientWidth;
-    var lastH = layer.clientHeight;
+    var list = document.getElementById("featured-list");
+    var state = { active: null };
+    var opts = {
+      space: true, stars: false, spread: 1.3, background: true,
+      hitLayer: document.getElementById("graph-hit"),
+      state: state,
+      anchor: featuredAnchor,
+      placeFeatured: placeFeatured,
+      onSelect: function (id) {
+        select(id);
+        /* 별은 페이지 아무 데나 있을 수 있다 — 카드가 화면 밖이면 카드 쪽으로 */
+        var card = list && list.querySelector('.featured[data-id="' + id + '"]');
+        if (!card) return;
+        var r = card.getBoundingClientRect();
+        if (r.top < 0 || r.bottom > window.innerHeight) {
+          card.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+    };
+    var cleanup = function () {};
+    cleanup.sync = cleanup.hover = cleanup.replace = function () {};
+    var lastW = 0;
+
+    /* 페이지 길이가 정해진 뒤(이미지 로딩 끝) 한 번 펼치고,
+       이후엔 폭이 바뀔 때만 다시 그린다 — 카드 펼침처럼 높이만 바뀌는 건 무시해야
+       별 배치가 그대로 유지된다 */
+    /* 카드가 세로로 쌓이는 모바일에선 인기글 별이 카드를 가리므로 일반 배경 별처럼 둔다
+       (카드 옆 배치·강조·연결선·클릭 없음) */
+    function featuredMode() {
+      return !!list && getComputedStyle(list).display !== "flex";
+    }
+
+    function draw() {
+      cleanup();
+      layer.innerHTML = "";
+      lastW = layer.clientWidth;
+      opts.featuredOn = featuredMode();
+      cleanup = renderGraph(layer, data, opts);
+    }
+    /* 인기글 별 자리 (레이어 좌표)와 선이 닿을 카드 변(anchorSide: "top" | "bottom").
+       1번(왼쪽 카드)  — 1·2번 카드 사이 아래쪽, 카드 아래 가운데로 연결
+                        (펼치면 아래로 길어지는 카드라 펼친 카드 바로 아래까지 내린다)
+       2번(가운데 카드) — 3번 카드 아래 오른쪽 위, 카드 아래 가운데로 연결
+       3번(오른쪽 카드) — 2번 카드 오른쪽 위 높이, 카드 위 가운데로 연결
+       반듯하게 맞으면 어색하므로 별마다 조금씩 흐트러뜨린다 */
+    var anchorSide = {};
+    function placeFeatured(id) {
+      var card = list && list.querySelector('.featured[data-id="' + id + '"]');
+      if (!card) return null;
+      var r = card.getBoundingClientRect();
+      var lr = list.getBoundingClientRect();
+      var base = layer.getBoundingClientRect();
+      var left = r.left - base.left, top = r.top - base.top;
+      var right = left + r.width, bottom = top + r.height;
+      var jj = jitterOf(id);
+      /* 세로로 쌓인 좁은 화면 — 카드 위 빈 공간에 세 별을 가로로 흩어 둔다 */
+      if (getComputedStyle(list).display === "flex") {
+        var cards = Array.prototype.slice.call(list.querySelectorAll(".featured"));
+        var i = cards.indexOf(card);
+        var slot = (i + 1) / (cards.length + 1);
+        var listLeft = lr.left - base.left, listTop = lr.top - base.top;
+        anchorSide[id] = "top";
+        return [listLeft + lr.width * slot + jj[0] * 30, listTop - 120 + (i % 2 ? 26 : 0) + jj[1] * 14];
+      }
+      var offset = (r.left + r.width / 2) - (lr.left + lr.width / 2);
+      if (offset < -60) {
+        anchorSide[id] = "bottom";
+        return [right + 25 + jj[0] * 16, bottom + 205 + jj[1] * 10];
+      }
+      if (offset > 60) {
+        anchorSide[id] = "top";
+        return [left - 40 + jj[0] * 16, top - 105 + jj[1] * 10];
+      }
+      anchorSide[id] = "bottom";
+      return [right + 130 + jj[0] * 16, bottom + 95 + jj[1] * 10];
+    }
+
+    /* 별마다 고정된 흐트러짐 (-0.5~0.5) — 자리를 다시 잡아도 같은 모양이 유지되게 */
+    var jitters = {};
+    function jitterOf(id) {
+      if (!jitters[id]) jitters[id] = [Math.random() - 0.5, Math.random() - 0.5];
+      return jitters[id];
+    }
+
+    /* 선이 닿는 점 — 카드 위 또는 아래 변의 가운데 (레이어 좌표) */
+    function featuredAnchor(id) {
+      var card = list && list.querySelector('.featured[data-id="' + id + '"]');
+      if (!card) return null;
+      var r = card.getBoundingClientRect();
+      var base = layer.getBoundingClientRect();
+      var x = r.left - base.left + r.width / 2;
+      var y = r.top - base.top + (anchorSide[id] === "top" ? 0 : r.height);
+      return [x, y];
+    }
+
+    /* 별·카드 선택 — 같은 걸 다시 고르면 그대로, null이면 전부 희미하게 */
+    function select(id) {
+      state.active = id;
+      if (list) {
+        list.classList.toggle("has-active", !!id);
+        list.querySelectorAll(".featured").forEach(function (c) {
+          c.classList.toggle("active", c.dataset.id === id);
+        });
+      }
+      cleanup.sync();
+    }
+
+    if (list) {
+      var canHover = window.matchMedia("(hover: hover)").matches;
+      list.querySelectorAll(".featured").forEach(function (card) {
+        /* 카드에 올리면 배경의 해당 별·선도 같이 밝아진다 */
+        card.addEventListener("mouseenter", function () { cleanup.hover(card.dataset.id, true); });
+        card.addEventListener("mouseleave", function () { cleanup.hover(card.dataset.id, false); });
+        card.addEventListener("click", function (event) {
+          /* 마우스는 올리는 순간 펼쳐지고, 모바일은 처음부터 펼쳐 보여 주므로 클릭 = 글로 이동.
+             접혀 보이는 터치 화면(큰 태블릿)만 첫 탭에 펼치고, 펼친 카드를 다시 누르면 이동 */
+          var shown = getComputedStyle(card.querySelector(".featured-detail-inner")).opacity === "1";
+          if (canHover || shown || card.classList.contains("active")) return;
+          event.preventDefault();
+          event.stopPropagation();
+          select(card.dataset.id);
+        });
+      });
+      document.addEventListener("click", function (event) {
+        if (state.active && !event.target.closest(".featured, .graph-hit-star")) select(null);
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && state.active && !document.querySelector(".graph-overlay")) select(null);
+      });
+    }
     var timer = null;
     /* 풀스크린 연출용 — 배경 별들의 현재 화면 좌표 */
     var source = {
@@ -594,20 +804,22 @@
         return map;
       }
     };
+    /* 첫 그리기는 맨 끝에서 — 위의 변수들(anchorSide, jitters 등)이 준비되기 전에
+       그리면 인기글 별 자리 계산이 실패한다 */
+    if (document.readyState === "complete") draw();
+    else window.addEventListener("load", draw, { once: true });
+
     if (typeof ResizeObserver === "undefined") return source;
+    /* 세로로 쌓인 카드가 펼쳐지면 묶음 위치가 바뀌므로 별도 따라가게 */
+    if (list) new ResizeObserver(function () { cleanup.replace(); }).observe(list);
     new ResizeObserver(function () {
       clearTimeout(timer);
       timer = setTimeout(function () {
-        var w = layer.clientWidth;
-        var h = layer.clientHeight;
-        /* 스크롤바 폭(풀스크린 열고 닫을 때 생겼다 사라짐) 정도의 변화는 무시 —
-           다시 그리면 별 배치가 바뀌어 풀스크린 연출과 어긋난다 */
-        if (Math.abs(w - lastW) < 40 && Math.abs(h - lastH) < 80) return;
-        lastW = w;
-        lastH = h;
-        cleanup();
-        layer.innerHTML = "";
-        cleanup = renderGraph(layer, data, opts);
+        /* 스크롤바 폭(풀스크린 열고 닫을 때 생겼다 사라짐) 정도의 변화도 무시 */
+        if (!lastW) return;
+        /* 폭이 크게 바뀌었거나 모바일 ↔ 데스크톱 배치가 바뀌었을 때만 */
+        if (Math.abs(layer.clientWidth - lastW) < 40 && featuredMode() === opts.featuredOn) return;
+        draw();
       }, 200);
     }).observe(layer);
     return source;

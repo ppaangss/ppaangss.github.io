@@ -7,18 +7,29 @@ layout: default
     <h1>안녕하세요, 방성식입니다.</h1>
     <p>공부한 것을 기록하는 공간입니다.</p>
   </div>
-  {% assign featured = site.posts | where: "featured", true | first %}
-  {% if featured %}
-  <a class="featured" href="{{ featured.url | relative_url }}">
+  {% assign featured_posts = site.posts | where: "featured", true %}
+  {% if featured_posts.size > 0 %}
+  <div class="featured-wrap">
     <span class="featured-label label">POPULAR</span>
-    {% if featured.image %}<img class="featured-thumb" src="{{ featured.image | relative_url }}" alt="">{% endif %}
-    <span class="featured-body">
-      <span class="row-cat">{{ featured.categories | join: " › " }}</span>
-      <span class="featured-title">{{ featured.title }}</span>
-      <span class="featured-excerpt">{{ featured.description | default: featured.excerpt | strip_html | strip_newlines | truncate: 120 }}</span>
-    </span>
-  </a>
+    <div class="featured-list" id="featured-list">
+      {% for f in featured_posts limit: 3 %}
+      <a class="featured" data-id="{{ f.slug }}" href="{{ f.url | relative_url }}">
+        {% if f.image %}<img class="featured-thumb" src="{{ f.image | relative_url }}" alt="">{% endif %}
+        <span class="row-cat">{{ f.categories | join: " › " }}</span>
+        <span class="featured-title">{{ f.title }}</span>
+        <span class="featured-detail"><span class="featured-detail-inner">
+          <span class="featured-excerpt">{{ f.description | default: f.excerpt | strip_html | strip_newlines | truncate: 140 }}</span>
+          <span class="featured-meta">
+            <time datetime="{{ f.date | date_to_xmlschema }}">{{ f.date | date: "%Y. %-m. %-d." }}</time>
+            <span class="featured-more">글 읽기 →</span>
+          </span>
+        </span></span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
   {% endif %}
+  <div class="graph-hit" id="graph-hit"></div>
 </section>
 
 <section class="recent">

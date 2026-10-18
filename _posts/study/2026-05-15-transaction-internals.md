@@ -4,6 +4,7 @@ date: 2026-05-15 20:59:00 +0900
 categories: [DB]
 tags: [DB, 트랜잭션, ACID, undo-log, redo-log, WAL]
 image: /assets/img/transaction-internals/transaction-internals-02-commit-flow.png
+featured: true
 description: "전부 성공 아니면 전부 취소라는 보장은 공짜가 아니다. ACID에서 출발해 undo 로그와 redo 로그, WAL까지, 커밋 한 번에 데이터베이스 안에서 일어나는 일을 따라간다."
 ---
 

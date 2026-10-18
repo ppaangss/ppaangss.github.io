@@ -126,10 +126,72 @@ body:has(.graph-bg) { position: relative; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  overflow: hidden;
+  overflow: clip; /* hidden과 달리 안쪽이 스크롤되지 않는다 */
   pointer-events: none;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* 흐림은 레이어가 아니라 요소별로 — 인기글 별·선만 더 밝게 두기 위해 */
+.graph-bg .graph-node,
+.graph-bg .graph-link {
   opacity: calc(0.32 + var(--pull, 0) * 0.68);
-  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.45s ease;
+  transition: opacity 0.45s ease;
+}
+
+/* 인기글 별 — 밝게, 천천히 맥박 */
+.graph-bg .graph-node.featured { opacity: 0.85; }
+.graph-bg .graph-node.featured circle { animation: featured-pulse 2.8s ease-in-out infinite; }
+.graph-bg .graph-node.featured.hover,
+.graph-bg .graph-node.featured.active { opacity: 1; }
+.graph-bg .graph-node.featured.active circle {
+  fill: #b8d2ff;
+  filter: drop-shadow(0 0 14px rgba(140, 185, 255, 1));
+}
+
+@keyframes featured-pulse {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(110, 168, 255, 0.55)); }
+  50% { filter: drop-shadow(0 0 14px rgba(140, 185, 255, 0.95)); }
+}
+
+/* 인기글 별 라벨 — 올리거나 선택했을 때만 */
+.graph-bg .graph-node.featured text { opacity: 0; transition: opacity 0.2s; }
+.graph-bg .graph-node.featured.hover text,
+.graph-bg .graph-node.featured.active text { opacity: 1; }
+
+/* 별 ↔ 카드 연결선 */
+.featured-link {
+  stroke: rgba(140, 185, 255, 0.22);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+  transition: stroke 0.3s;
+}
+.featured-link.hover { stroke: rgba(140, 185, 255, 0.5); }
+.featured-link.active {
+  stroke: rgba(160, 200, 255, 0.85);
+  stroke-dasharray: none;
+  stroke-width: 1.4;
+}
+
+/* 인기글 별 클릭 영역 — 본문 위 투명 레이어, 별 위치를 따라다닌다 */
+.graph-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.graph-hit-star {
+  position: absolute;
+  top: -18px;
+  left: -18px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
 }
 
 /* 휠을 굴리는 동안에는 짧게 따라오고, 멈추면 transition으로 복귀 */
@@ -138,59 +200,127 @@ body:has(.graph-bg) { position: relative; }
 .graph-bg svg { display: block; }
 
 
-/* 홈 첫 화면 가운데 인기글 카드 — front matter의 featured: true */
-.featured {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  margin: auto; /* 인사말과 최근 글 사이 빈 공간의 가운데 */
-  width: 100%;
-  max-width: 720px;
-  padding: 22px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  transition: border-color 0.2s, transform 0.2s;
-}
-
+/* 홈 첫 화면 가운데 인기글 — featured: true 글 최대 3개.
+   처음엔 희미한 작은 카드, 카드나 배경의 해당 별을 누르면 그 카드가 펼쳐진다 */
 .hero-stage .hero { margin-bottom: 48px; } /* 화면이 낮아도 카드와 붙지 않게 */
 
-.featured:hover { border-color: var(--text-tertiary); transform: translateY(-2px); }
-.featured:hover .featured-title { text-decoration: underline; text-underline-offset: 4px; }
+.featured-wrap {
+  position: relative;
+  z-index: 3; /* 인기글 별 클릭 영역보다 위 */
+  margin: auto 0; /* 인사말과 최근 글 사이 빈 공간의 가운데 */
+  /* 카드 3장(300px)이 들어가도록 본문 폭(860px)을 넘어 양옆으로 넓힌다 */
+  align-self: center;
+  width: min(1040px, calc(100vw - 48px));
+  pointer-events: none; /* 카드 사이 빈 곳은 통과 — 그 아래 인기글 별에 마우스가 닿게 */
+}
 
-.featured .featured-label {
-  position: absolute;
-  top: -10px;
-  left: 18px;
-  padding: 0 8px;
+.featured-wrap .featured-label {
+  display: block;
+  text-align: center; /* 카드 묶음이 가운데 정렬이라 라벨도 가운데 */
+  padding-bottom: 12px;
   font-size: 11px;
   color: var(--accent);
-  background: var(--bg);
-  border-radius: 4px;
 }
+
+/* 카드 3개를 가운데 공간에 엇갈려 흩어 둔다 (절대 배치라 하나가 커져도 나머지는 그대로) */
+.featured-list {
+  position: relative;
+  height: clamp(320px, 38vw, 400px);
+}
+
+.featured {
+  position: absolute;
+  pointer-events: auto;
+  width: clamp(200px, 29vw, 300px); /* 731px 화면 ≈ 212px, 1035px 이상 300px */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0.72;
+  animation: featured-float 7s ease-in-out infinite;
+  transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s, border-color 0.3s, background 0.3s;
+}
+
+/* 자리 — 왼쪽은 오른쪽으로, 오른쪽은 왼쪽으로, 가운데는 양옆으로 커진다 */
+.featured:nth-child(1) { left: 2%; top: 0; }
+.featured:nth-child(2) { left: 0; right: 0; margin: 0 auto; top: clamp(76px, 10.6vw, 110px); animation-delay: -2.3s; }
+.featured:nth-child(3) { right: 2%; top: clamp(24px, 3.5vw, 36px); animation-delay: -4.6s; }
+
+@keyframes featured-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
+}
+
+/* 펼침 — 마우스를 올리거나, 배경 별·탭으로 선택했을 때 */
+.featured:hover,
+.featured.active {
+  width: clamp(320px, 44vw, 460px);
+  z-index: 2;
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  animation-play-state: paused;
+}
+
+/* 하나가 선택돼 있으면 나머지는 조금 더 흐리게 */
+.featured-list.has-active .featured:not(.active):not(:hover) { opacity: 0.5; }
 
 .featured-thumb {
-  flex: none;
-  width: 220px;
-  aspect-ratio: 3 / 2;
+  width: 100%;
+  aspect-ratio: 2 / 1;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #fff;
+  margin-bottom: 6px;
 }
 
-.featured-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.featured .row-cat { font-size: 13px; }
 
 .featured-title {
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: -0.3px;
-  line-height: 1.4;
+  letter-spacing: -0.2px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: font-size 0.3s;
 }
 
+.featured:hover .featured-title,
+.featured.active .featured-title { font-size: 20px; -webkit-line-clamp: unset; }
+
+/* 펼침 영역 — grid 0fr → 1fr로 높이 전환 */
+.featured-detail {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.featured:hover .featured-detail,
+.featured.active .featured-detail { grid-template-rows: 1fr; }
+
+.featured-detail-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.featured:hover .featured-detail-inner,
+.featured.active .featured-detail-inner { opacity: 1; transition-delay: 0.12s; }
+
 .featured-excerpt {
+  margin-top: 4px;
   font-size: 14px;
   color: var(--text-secondary);
   display: -webkit-box;
@@ -199,10 +329,47 @@ body:has(.graph-bg) { position: relative; }
   overflow: hidden;
 }
 
-@media (max-width: 640px) {
-  .featured { flex-direction: column; align-items: stretch; gap: 16px; padding: 16px; }
-  .featured-thumb { width: 100%; }
-  .featured-title { font-size: 19px; }
+.featured-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.featured-more { color: var(--accent); }
+
+/* 좁은 화면 — 흩어 두지 않고 세로로 쌓는다. 썸네일은 왼쪽에 작게, 펼침은 아래로 */
+@media (max-width: 730px) {
+  .featured-wrap { width: 100%; }
+  .featured-list { height: auto; display: flex; flex-direction: column; gap: 10px; }
+  .featured,
+  .featured:nth-child(n) {
+    position: relative;
+    inset: auto;
+    margin: 0;
+    width: 100%;
+    animation: none;
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    column-gap: 14px;
+    align-items: center;
+  }
+  .featured:hover, .featured.active { width: 100%; }
+  .featured-thumb { grid-row: 1 / 3; margin: 0; }
+  .featured .row-cat { align-self: end; }
+  .featured .featured-title { align-self: start; }
+  .featured:hover .featured-title,
+  .featured.active .featured-title { font-size: 15px; }
+  .featured-detail { grid-column: 1 / -1; }
+}
+
+/* 모바일 — 마우스를 올릴 수 없으니 펼침 상태를 처음부터 보여 준다 */
+@media (max-width: 730px), (max-width: 1000px) and (hover: none) {
+  .featured,
+  .featured-list.has-active .featured:not(.active):not(:hover) { opacity: 1; }
+  .featured .featured-title { -webkit-line-clamp: unset; }
+  .featured .featured-detail { grid-template-rows: 1fr; }
+  .featured .featured-detail-inner { opacity: 1; }
 }
 
 /* 상단 바 가운데 안내 — 휠 제스처가 켜진 데스크톱에서만 */
@@ -225,6 +392,9 @@ body:has(.graph-bg) { position: relative; }
 
 .can-pull .pull-hint { display: block; }
 .can-pull:has(.hero-stage.pulling) .pull-hint { opacity: 0; }
+
+/* 인기글 별 클릭 영역보다 위 */
+.site-header { z-index: 3; }
 
 /* 창이 좁으면 로고·메뉴와 겹치므로 숨김 */
 @media (max-width: 760px) {
