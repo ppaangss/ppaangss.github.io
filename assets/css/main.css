@@ -217,8 +217,8 @@ body:has(.graph-bg) { position: relative; }
 .featured-wrap .featured-label {
   display: block;
   text-align: center; /* 카드 묶음이 가운데 정렬이라 라벨도 가운데 */
-  padding-bottom: 12px;
-  font-size: 11px;
+  padding-bottom: 14px;
+  font-size: 14px;
   color: var(--accent);
 }
 
