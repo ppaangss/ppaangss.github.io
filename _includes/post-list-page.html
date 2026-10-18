@@ -114,6 +114,10 @@
     b.addEventListener('click', function () {
       tag = (tag === b.dataset.tag) ? '' : b.dataset.tag;
       apply();
+      /* 모바일은 태그가 목록 아래에 있으니, 걸러진 목록이 보이게 위로 */
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        document.querySelector('.posts-head').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     });
   });
 

@@ -13,6 +13,7 @@ tags:
   - 타임아웃
   - POST
 image: /assets/img/duplicate-submission-idempotency-key/05-멱등성%20키.png
+featured: true
 description: 진료내역 등록 API에서 타임아웃 뒤 재시도로 진료내역이 두 건 저장되는 문제를 다룬다. 자연 키와 시간 윈도우가 요청 내용만으로 같은 요청을 판정하려다 탈락한 이유와, 클라이언트가 작성 화면마다 만드는 멱등성 키를 선택한 과정을 정리한다.
 ---
 

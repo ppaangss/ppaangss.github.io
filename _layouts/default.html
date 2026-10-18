@@ -24,6 +24,7 @@
         </a>
         <a class="logo mono" href="{{ '/' | relative_url }}">ppaangss</a>
       </span>
+      {% if page.url == "/" %}<span class="pull-hint mono" aria-hidden="true">↑ 휠을 위로 굴려 별자리 펼치기</span>{% endif %}
       <nav class="site-nav">
         <a href="{{ '/posts/' | relative_url }}">Posts</a>
         <a href="{{ '/about/' | relative_url }}">About</a>

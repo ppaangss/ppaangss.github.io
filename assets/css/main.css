@@ -108,6 +108,134 @@ main { flex: 1; }
 /* 홈 히어로 */
 .hero { padding-top: 110px; }
 
+/* 배경 그래프 위에서도 읽히게 */
+.hero-stage .hero h1,
+.hero-stage .hero p { text-shadow: 0 0 14px var(--bg), 0 0 4px var(--bg); }
+
+/* 홈 — 지식 그래프를 페이지 전체 배경으로 깐다 (조작 불가, 맨 위에서 휠을 위로 굴리면 풀스크린) */
+.hero-stage {
+  min-height: calc(100svh - 150px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* body 기준으로 페이지 맨 위부터 맨 아래까지, 전체 폭 */
+body:has(.graph-bg) { position: relative; }
+
+.graph-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: calc(0.32 + var(--pull, 0) * 0.68);
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.45s ease;
+}
+
+/* 휠을 굴리는 동안에는 짧게 따라오고, 멈추면 transition으로 복귀 */
+.hero-stage.pulling .graph-bg { transition: transform 0.12s ease-out, opacity 0.12s ease-out; }
+
+.graph-bg svg { display: block; }
+
+
+/* 홈 첫 화면 가운데 인기글 카드 — front matter의 featured: true */
+.featured {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin: auto; /* 인사말과 최근 글 사이 빈 공간의 가운데 */
+  width: 100%;
+  max-width: 720px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.hero-stage .hero { margin-bottom: 48px; } /* 화면이 낮아도 카드와 붙지 않게 */
+
+.featured:hover { border-color: var(--text-tertiary); transform: translateY(-2px); }
+.featured:hover .featured-title { text-decoration: underline; text-underline-offset: 4px; }
+
+.featured .featured-label {
+  position: absolute;
+  top: -10px;
+  left: 18px;
+  padding: 0 8px;
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--bg);
+  border-radius: 4px;
+}
+
+.featured-thumb {
+  flex: none;
+  width: 220px;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.featured-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.featured-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.4;
+}
+
+.featured-excerpt {
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .featured { flex-direction: column; align-items: stretch; gap: 16px; padding: 16px; }
+  .featured-thumb { width: 100%; }
+  .featured-title { font-size: 19px; }
+}
+
+/* 상단 바 가운데 안내 — 휠 제스처가 켜진 데스크톱에서만 */
+.site-header { position: relative; }
+
+.pull-hint {
+  display: none;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: max-content;
+  height: max-content;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  animation: pull-hint-bob 2.4s ease-in-out infinite;
+  transition: opacity 0.2s;
+}
+
+.can-pull .pull-hint { display: block; }
+.can-pull:has(.hero-stage.pulling) .pull-hint { opacity: 0; }
+
+/* 창이 좁으면 로고·메뉴와 겹치므로 숨김 */
+@media (max-width: 760px) {
+  .can-pull .pull-hint { display: none; }
+}
+
+@keyframes pull-hint-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
 .hero h1 {
   font-size: 28px;
   font-weight: 700;
@@ -319,7 +447,64 @@ main { flex: 1; }
   inset: 0;
   z-index: 1000;
   background: radial-gradient(ellipse 120% 90% at 50% 35%, #0c0e17 0%, #07080d 55%, #030304 100%);
-  animation: graph-overlay-in 0.25s ease;
+  animation: graph-overlay-in 0.5s ease;
+  transition: opacity 0.26s ease;
+}
+
+.graph-overlay.closing { opacity: 0; pointer-events: none; }
+
+/* 등장 연출 — 별이 모이는 동안 선·라벨은 늦게 서서히 */
+.intro .graph-link { animation: graph-fade-in 0.9s ease 0.45s both; }
+.intro .graph-node text { animation: graph-fade-in 0.6s ease 0.7s both; }
+.intro .graph-node circle { animation: graph-fade-in 0.5s ease both; }
+
+@keyframes graph-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes graph-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* 홈 배경에서 열 때 — 배경 별이 그대로 옮겨온다.
+   밤하늘·잔별·버튼만 페이드하고, 별은 배경 밝기(0.32)에서 시작해 밝아진다 */
+.graph-overlay.from-bg {
+  background: transparent;
+  animation: none;
+}
+
+.graph-overlay.from-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 120% 90% at 50% 35%, #0c0e17 0%, #07080d 55%, #030304 100%);
+  animation: graph-fade-in 0.6s ease both;
+}
+
+.graph-overlay.from-bg .star-field { animation: graph-fade-in 0.8s ease both; }
+.graph-overlay.from-bg button { animation: graph-fade-in 0.5s ease 0.3s both; }
+.graph-overlay.from-bg .intro .graph-node circle,
+.graph-overlay.from-bg .intro .graph-link { animation: graph-brighten 0.9s ease both; }
+
+@keyframes graph-brighten {
+  from { opacity: 0.32; }
+  to { opacity: 1; }
+}
+
+/* 닫을 때 — 별은 배경 밝기로 흐려지며 제자리로, 나머지는 먼저 사라진다 */
+.graph-overlay.outro::before { animation: graph-fade-out 0.65s ease both; }
+.graph-overlay.outro .star-field { animation: graph-fade-out 0.4s ease both; }
+.graph-overlay.outro button,
+.graph-overlay.outro .graph-hint,
+.graph-overlay.outro .graph-node text { animation: graph-fade-out 0.25s ease both; }
+.graph-overlay.outro .graph-node circle,
+.graph-overlay.outro .graph-link { animation: graph-dim 0.65s ease both; }
+
+@keyframes graph-dim {
+  from { opacity: 1; }
+  to { opacity: 0.32; }
 }
 
 @keyframes graph-overlay-in {
@@ -442,6 +627,7 @@ main { flex: 1; }
 }
 
 .recent { padding-top: 88px; }
+.hero-stage + .recent { padding-top: 40px; }
 
 /* 글 목록 */
 .post-list { list-style: none; }
@@ -641,7 +827,7 @@ main { flex: 1; }
 
 /* 좁은 화면: 태그가 목록 위로 */
 @media (max-width: 768px) {
-  .posts-layout { flex-direction: column-reverse; gap: 28px; }
+  .posts-layout { flex-direction: column; gap: 28px; }
   .tag-side { position: static; width: 100%; padding-top: 16px; }
   .tag-side .label { padding-bottom: 12px; }
   .tag-nav { flex-direction: row; flex-wrap: wrap; gap: 8px 18px; }

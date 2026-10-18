@@ -3,17 +3,25 @@
    조작은 피그마 방식: Space+드래그 = 이동, ⌘/Ctrl+휠 = 확대, 기본 휠 = 페이지 스크롤 */
 
 (function () {
+  /* 두 가지 모드 — #graph: 조작 가능한 박스, #graph-bg: 홈 첫 화면 배경 (조작 불가) */
   var box = document.getElementById("graph");
-  if (!box || typeof d3 === "undefined") return;
+  var bg = document.getElementById("graph-bg");
+  var host = box || bg;
+  if (!host || typeof d3 === "undefined") return;
 
   var space = { held: false };
 
-  fetch(box.dataset.src)
+  fetch(host.dataset.src)
     .then(function (res) { return res.json(); })
     .then(function (data) {
-      renderGraph(box, data, { space: true, stars: false, spread: 1, observeResize: true, springBack: true });
-      addExpandButton(box, data);
-      addCollapseButton(box);
+      if (box) {
+        renderGraph(box, data, { space: true, stars: false, spread: 1, observeResize: true, springBack: true });
+        addExpandButton(box, data);
+        addCollapseButton(box);
+      } else {
+        var bgSource = renderBackground(bg, data);
+        addPullGesture(document.getElementById("hero-stage"), bg, data, bgSource);
+      }
       if (window.location.hash === "#graph-full") openOverlay(data);
     })
     .catch(function (err) { console.error("graph.json 로드 실패:", err); });
@@ -107,7 +115,7 @@
 
     /* 풀스크린 — 줌에 영향 받지 않는 별 배경 (인라인 박스는 사이트 배경 별이 비친다) */
     if (opts.stars) {
-      var stars = svg.append("g");
+      var stars = svg.append("g").attr("class", "star-field");
       for (var s = 0; s < 160; s++) {
         stars.append("circle")
           .attr("class", "star")
@@ -255,10 +263,13 @@
       return d.chars ? 6.5 + charNorm(d.chars) * 4.5 : 8;
     });
 
-    node.append("text")
-      .attr("dy", 26)
-      .attr("text-anchor", "middle")
-      .text(function (d) { return d.title; });
+    /* 배경 모드는 별만 — 라벨 없음 */
+    if (!opts.background) {
+      node.append("text")
+        .attr("dy", 26)
+        .attr("text-anchor", "middle")
+        .text(function (d) { return d.title; });
+    }
 
     function ticked() {
       link
@@ -309,7 +320,96 @@
         svg.call(zoom.transform, transform);
       }
     }
-    fitView();
+    /* 배경 모드 — 가운데로 모으지 않고 화면 전체에 펼친 뒤 천천히 떠다니게 한다 */
+    var driftFrame = null;
+    if (opts.background) {
+      fillBox();
+      startDrift();
+    } else {
+      fitView();
+      if (opts.intro) playIntro();
+    }
+
+    /* 화면 좌표 → 그래프 좌표 (현재 줌 기준) */
+    function fromScreen(p) {
+      var box = svg.node().getBoundingClientRect();
+      return d3.zoomTransform(svg.node()).invert([p[0] - box.left, p[1] - box.top]);
+    }
+
+    /* 등장 연출 — 별들이 출발점에서 제자리로 모인다.
+       opts.introFrom(별 id → 화면 좌표)이 있으면 홈 배경 별이 떠 있던 그 자리에서 출발하고,
+       없으면 바깥에 흩어진 위치에서 출발한다. 선·라벨은 CSS(.intro)로 뒤따라 서서히 나타난다 */
+    function playIntro() {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      var root = null;
+      nodes.forEach(function (d) { if (d.kind === "root") root = d; });
+      var to = nodes.map(function (d) { return [d.x, d.y]; });
+      var src = opts.introFrom || {};
+      var from = nodes.map(function (d) {
+        if (src[d.id]) return fromScreen(src[d.id]);
+        if (d === root) return [d.x, d.y];
+        var dx = d.x - root.x;
+        var dy = d.y - root.y;
+        var k = 2.2 + Math.random() * 0.8;
+        return [root.x + dx * k + (Math.random() - 0.5) * 120, root.y + dy * k + (Math.random() - 0.5) * 120];
+      });
+      container.classList.add("intro");
+      zoomLayer.transition("intro")
+        .duration(1100)
+        .ease(d3.easeCubicOut)
+        .tween("positions", function () {
+          return function (t) {
+            nodes.forEach(function (d, i) {
+              d.x = from[i][0] + (to[i][0] - from[i][0]) * t;
+              d.y = from[i][1] + (to[i][1] - from[i][1]) * t;
+            });
+            ticked();
+          };
+        })
+        .on("end interrupt", function () {
+          nodes.forEach(function (d, i) { d.x = to[i][0]; d.y = to[i][1]; });
+          ticked();
+        });
+      /* 선·라벨 페이드(최대 1.35초)가 끝난 뒤 클래스 정리 */
+      setTimeout(function () { container.classList.remove("intro"); }, 1500);
+      /* 첫 프레임을 바깥 위치에서 시작 */
+      nodes.forEach(function (d, i) { d.x = from[i][0]; d.y = from[i][1]; });
+      ticked();
+    }
+
+    /* 배치를 박스 가로세로에 각각 맞춰 늘린다 */
+    function fillBox() {
+      var xs = nodes.map(function (d) { return d.x; });
+      var ys = nodes.map(function (d) { return d.y; });
+      var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+      var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+      var padX = Math.min(70, width * 0.08);
+      var padTop = 110; /* 상단 메뉴 아래부터 */
+      var padBottom = 80;
+      nodes.forEach(function (d) {
+        d.bx = padX + (d.x - minX) / ((maxX - minX) || 1) * (width - padX * 2);
+        d.by = padTop + (d.y - minY) / ((maxY - minY) || 1) * (height - padTop - padBottom);
+        d.x = d.bx;
+        d.y = d.by;
+        /* 별마다 떠다니는 주기·방향을 다르게 */
+        d.phase = Math.random() * Math.PI * 2;
+        d.speed = 0.00018 + Math.random() * 0.00022;
+        d.amp = 6 + Math.random() * 8;
+      });
+      ticked();
+    }
+
+    function startDrift() {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      (function frame(t) {
+        nodes.forEach(function (d) {
+          d.x = d.bx + Math.cos(t * d.speed + d.phase) * d.amp;
+          d.y = d.by + Math.sin(t * d.speed * 1.3 + d.phase) * d.amp;
+        });
+        ticked();
+        driftFrame = requestAnimationFrame(frame);
+      })(0);
+    }
 
     /* 초기화 — 노드 배치를 현재 박스 비율 기준의 초기 상태로 다시 계산한다
        (끌어놓은 노드·시야 전부 리셋, 처음 로드와 같은 과정을 다시 밟음) */
@@ -355,8 +455,8 @@
     }
 
     /* 화면 맞추기(카메라만) + 배치 초기화 버튼 —
-       스프링백(인라인 박스)에서는 배치가 안 바뀌므로 두 버튼 모두 생략 */
-    if (!opts.springBack) {
+       스프링백(인라인 박스)·배경 모드에서는 배치가 안 바뀌므로 두 버튼 모두 생략 */
+    if (!opts.springBack && !opts.background) {
       container.appendChild(makeButton(
         "graph-fit", "화면에 맞추기",
         '<circle cx="12" cy="12" r="6"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
@@ -412,13 +512,15 @@
       resizeObserver.observe(container);
     }
 
-    /* 조작 힌트 */
-    var hint = document.createElement("span");
-    hint.className = "graph-hint";
-    hint.textContent = window.matchMedia("(hover: none)").matches
-      ? "드래그 이동 · 핀치 확대"
-      : "Space+드래그 이동 · ⌘+스크롤 확대";
-    container.appendChild(hint);
+    /* 조작 힌트 (배경 모드는 조작이 없으니 생략) */
+    if (!opts.background) {
+      var hint = document.createElement("span");
+      hint.className = "graph-hint";
+      hint.textContent = window.matchMedia("(hover: none)").matches
+        ? "드래그 이동 · 핀치 확대"
+        : "Space+드래그 이동 · ⌘+스크롤 확대";
+      container.appendChild(hint);
+    }
 
     /* Space 키 추적 — 그래프 위에 있을 때만 페이지 스크롤 차단 */
     var hovering = false;
@@ -442,11 +544,135 @@
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
 
-    return function cleanup() {
+    function cleanup() {
+      if (driftFrame) cancelAnimationFrame(driftFrame);
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("keyup", onKeyUp);
       if (resizeObserver) resizeObserver.disconnect();
+    }
+
+    /* 퇴장 연출 — 별들이 targets(별 id → 화면 좌표)로 돌아간 뒤 done 호출 */
+    cleanup.outro = function (targets, done) {
+      simulation.stop();
+      zoomLayer.interrupt("intro");
+      var from = nodes.map(function (d) { return [d.x, d.y]; });
+      var to = nodes.map(function (d, i) { return targets[d.id] ? fromScreen(targets[d.id]) : from[i]; });
+      zoomLayer.transition("outro")
+        .duration(650)
+        .ease(d3.easeCubicInOut)
+        .tween("positions", function () {
+          return function (t) {
+            nodes.forEach(function (d, i) {
+              d.x = from[i][0] + (to[i][0] - from[i][0]) * t;
+              d.y = from[i][1] + (to[i][1] - from[i][1]) * t;
+            });
+            ticked();
+          };
+        })
+        .on("end interrupt", done);
     };
+
+    return cleanup;
+  }
+
+  /* 홈 배경 그래프 — 페이지 크기가 바뀌면(창 크기, 이미지 로딩으로 길어짐) 통째로 다시 펼친다 */
+  function renderBackground(layer, data) {
+    var opts = { space: true, stars: false, spread: 1.3, background: true };
+    var cleanup = renderGraph(layer, data, opts);
+    var lastW = layer.clientWidth;
+    var lastH = layer.clientHeight;
+    var timer = null;
+    /* 풀스크린 연출용 — 배경 별들의 현재 화면 좌표 */
+    var source = {
+      layer: layer,
+      positions: function () {
+        var map = {};
+        d3.select(layer).selectAll(".graph-node circle").each(function (d) {
+          var r = this.getBoundingClientRect();
+          map[d.id] = [r.left + r.width / 2, r.top + r.height / 2];
+        });
+        return map;
+      }
+    };
+    if (typeof ResizeObserver === "undefined") return source;
+    new ResizeObserver(function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        var w = layer.clientWidth;
+        var h = layer.clientHeight;
+        /* 스크롤바 폭(풀스크린 열고 닫을 때 생겼다 사라짐) 정도의 변화는 무시 —
+           다시 그리면 별 배치가 바뀌어 풀스크린 연출과 어긋난다 */
+        if (Math.abs(w - lastW) < 40 && Math.abs(h - lastH) < 80) return;
+        lastW = w;
+        lastH = h;
+        cleanup();
+        layer.innerHTML = "";
+        cleanup = renderGraph(layer, data, opts);
+      }, 200);
+    }).observe(layer);
+    return source;
+  }
+
+  /* 홈 배경 — 데스크톱에서 페이지 맨 위에서 휠을 위로 더 굴리면 풀스크린이 열린다.
+     굴리는 동안 배경 별자리가 따라 올라오며 밝아지고, 덜 굴리고 멈추면 제자리로 돌아간다.
+     아래에서 올라온 관성 휠에 열리지 않도록, 맨 위에서 잠깐 멈췄다가 새로 굴릴 때만 반응한다.
+     터치 기기에서는 걸지 않는다 */
+  function addPullGesture(stage, layer, data, source) {
+    if (!stage || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    stage.classList.add("pullable");
+    document.documentElement.classList.add("can-pull"); /* 상단 바 안내 문구 표시용 */
+
+    var THRESHOLD = 300; /* 휠 deltaY 누적치 (마우스 휠 약 3칸) */
+    var IDLE = 250;      /* 이만큼 휠이 끊기면 새 제스처로 본다 */
+    var pull = 0;
+    var armed = false;
+    var lastWheel = 0;
+    var releaseTimer = null;
+
+    function setPull(p) {
+      stage.classList.add("pulling");
+      layer.style.transform = "translateY(" + (-p * 40) + "px)";
+      layer.style.setProperty("--pull", p);
+    }
+
+    function release() {
+      pull = 0;
+      stage.classList.remove("pulling");
+      layer.style.transform = "";
+      layer.style.removeProperty("--pull");
+    }
+
+    window.addEventListener("wheel", function (event) {
+      var now = Date.now();
+      var gap = now - lastWheel;
+      lastWheel = now;
+      if (document.querySelector(".graph-overlay")) return;
+
+      if (window.scrollY > 0 || event.deltaY > 0) {
+        armed = false;
+        if (pull) release();
+        return;
+      }
+      if (!armed) {
+        if (gap < IDLE) return; /* 아직 이어지는 관성 휠 */
+        armed = true;
+      }
+
+      var dy = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY;
+      pull += -dy;
+      var p = Math.min(1, pull / THRESHOLD);
+      setPull(p);
+
+      clearTimeout(releaseTimer);
+      if (p >= 1) {
+        var from = source.positions(); /* 끌어올린 위치 그대로에서 출발 */
+        release();
+        armed = false;
+        openOverlay(data, source, from);
+        return;
+      }
+      releaseTimer = setTimeout(release, IDLE);
+    }, { passive: true });
   }
 
   function makeButton(cls, title, svgPaths, onClick) {
@@ -493,11 +719,12 @@
     container.appendChild(btn);
   }
 
-  function openOverlay(data) {
+  /* source가 있으면(홈 배경) 배경 별이 그대로 풀스크린 별자리로 옮겨가고, 닫을 때 제자리로 돌아간다 */
+  function openOverlay(data, source, introFrom) {
     if (document.querySelector(".graph-overlay")) return;
 
     var overlay = document.createElement("div");
-    overlay.className = "graph-overlay";
+    overlay.className = source ? "graph-overlay from-bg" : "graph-overlay";
 
     var canvas = document.createElement("div");
     canvas.className = "graph-overlay-canvas";
@@ -514,12 +741,36 @@
     document.body.appendChild(overlay);
     document.body.style.overflow = "hidden";
 
-    var cleanupRender = renderGraph(canvas, data, { space: true, stars: true, spread: 1.6, touchPan: true });
+    var cleanupRender = renderGraph(canvas, data, {
+      space: true, stars: true, spread: 1.6, touchPan: true, intro: true,
+      introFrom: source ? (introFrom || source.positions()) : null
+    });
+    /* 같은 별이 두 번 보이지 않게, 옮겨가는 동안 배경 별은 숨긴다 */
+    if (source) source.layer.style.visibility = "hidden";
 
+    var closing = false;
     function close() {
-      cleanupRender();
-      overlay.remove();
+      if (closing) return;
+      closing = true;
       document.body.style.overflow = "";
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (source && !reduce) {
+        /* 별들이 배경 자리로 돌아간 뒤 배경과 바꿔치기 */
+        overlay.classList.add("outro");
+        cleanupRender.outro(source.positions(), function () {
+          source.layer.style.visibility = "";
+          cleanupRender();
+          overlay.remove();
+        });
+      } else {
+        /* 페이드아웃이 끝난 뒤 제거 */
+        overlay.classList.add("closing");
+        setTimeout(function () {
+          if (source) source.layer.style.visibility = "";
+          cleanupRender();
+          overlay.remove();
+        }, 260);
+      }
       document.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", onResize);
       if (window.location.hash === "#graph-full") {

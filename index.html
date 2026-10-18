@@ -1,15 +1,24 @@
 ---
 layout: default
 ---
-<section class="hero">
-  <h1>안녕하세요, 방성식입니다.</h1>
-  <p>공부한 것을 기록하는 공간입니다.</p>
-</section>
-
-<section class="graph-section">
-  <div id="graph" data-src="{{ '/assets/graph.json' | relative_url }}">
-    <span class="graph-title label">KNOWLEDGE GRAPH</span>
+<section class="hero-stage" id="hero-stage">
+  <div id="graph-bg" class="graph-bg" data-src="{{ '/assets/graph.json' | relative_url }}" aria-hidden="true"></div>
+  <div class="hero">
+    <h1>안녕하세요, 방성식입니다.</h1>
+    <p>공부한 것을 기록하는 공간입니다.</p>
   </div>
+  {% assign featured = site.posts | where: "featured", true | first %}
+  {% if featured %}
+  <a class="featured" href="{{ featured.url | relative_url }}">
+    <span class="featured-label label">POPULAR</span>
+    {% if featured.image %}<img class="featured-thumb" src="{{ featured.image | relative_url }}" alt="">{% endif %}
+    <span class="featured-body">
+      <span class="row-cat">{{ featured.categories | join: " › " }}</span>
+      <span class="featured-title">{{ featured.title }}</span>
+      <span class="featured-excerpt">{{ featured.description | default: featured.excerpt | strip_html | strip_newlines | truncate: 120 }}</span>
+    </span>
+  </a>
+  {% endif %}
 </section>
 
 <section class="recent">
