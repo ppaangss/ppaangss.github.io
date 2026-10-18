@@ -73,14 +73,17 @@
   var items = document.querySelectorAll('#all-posts > li');
   var empty = document.getElementById('no-result');
 
+  /* 카테고리는 상위 경로도 받는다 — '프로젝트'면 '프로젝트 › 보험찾개냥' 등 하위 전부 */
+  function inCat(c) { return !cat || c === cat || c.indexOf(cat + ' › ') === 0; }
+
   var validCat = false;
-  catButtons.forEach(function (b) { if (b.dataset.cat === cat) validCat = true; });
+  items.forEach(function (li) { if (cat && inCat(li.dataset.cat)) validCat = true; });
   if (!validCat) cat = '';
 
   function apply() {
     var visible = 0;
     items.forEach(function (li) {
-      var okCat = !cat || li.dataset.cat === cat;
+      var okCat = inCat(li.dataset.cat);
       var tags = li.dataset.tags ? li.dataset.tags.split(',') : [];
       var okTag = !tag || tags.indexOf(tag) !== -1;
       var show = okCat && okTag;

@@ -28,25 +28,67 @@
     var nodes = data.nodes.map(function (d) { return Object.assign({}, d); });
     var links = data.links.map(function (d) { return Object.assign({}, d); });
 
-    /* 글 노드의 group에서 카테고리(노란 별)·CS 루트(빨간 별)를 자동 생성해
-       전체를 하나의 트리로 연결한다 — graph.json에는 글 노드만 있으면 된다 */
-    var groupCounts = {};
+    /* 글 노드의 path(front matter categories)에서 카테고리 별(노란 별)과
+       Posts 루트(빨간 별)를 자동 생성해 전체를 하나의 트리로 연결한다.
+       [프로젝트, 보험찾개냥]이면 Posts → 프로젝트 → 보험찾개냥 → 글 */
+    var catCounts = {};
+    var catOrder = [];
     nodes.forEach(function (d) {
-      if (!d.group) return;
-      groupCounts[d.group] = (groupCounts[d.group] || 0) + 1;
-      links.push({ source: "cat:" + d.group, target: d.id });
+      var path = d.path || [];
+      var parent = "root";
+      path.forEach(function (name, i) {
+        var key = path.slice(0, i + 1).join(" › ");
+        var id = "cat:" + key;
+        if (!(key in catCounts)) {
+          catCounts[key] = 0;
+          catOrder.push({ id: id, key: key, title: name, parent: parent });
+        }
+        catCounts[key]++;
+        parent = id;
+      });
+      links.push({ source: parent, target: d.id });
     });
-    var counts = Object.keys(groupCounts).map(function (g) { return groupCounts[g]; });
+    var counts = catOrder.map(function (c) { return catCounts[c.key]; });
     var countMin = Math.min.apply(null, counts);
     var countMax = Math.max.apply(null, counts);
-    Object.keys(groupCounts).forEach(function (g) {
-      /* 카테고리 별 크기 = 글 개수 (최소~최대 상대 비율) */
-      var t = countMax === countMin ? 0.5 : (groupCounts[g] - countMin) / (countMax - countMin);
-      nodes.push({ id: "cat:" + g, title: g, kind: "category", catSize: 7.5 + t * 5 });
-      links.push({ source: "cs", target: "cat:" + g });
+    catOrder.forEach(function (c) {
+      /* 카테고리 별 크기 = 하위 글 개수 (최소~최대 상대 비율) */
+      var t = countMax === countMin ? 0.5 : (catCounts[c.key] - countMin) / (countMax - countMin);
+      nodes.push({ id: c.id, title: c.title, path: c.key, kind: "category", catSize: 7.5 + t * 5 });
+      links.push({ source: c.parent, target: c.id });
     });
-    /* CS 루트는 항상 화면 중앙에 고정 — 카테고리들이 주위로 고르게 퍼진다 */
-    nodes.push({ id: "cs", title: "CS", kind: "root", fx: width / 2, fy: height / 2 });
+    /* 루트는 항상 화면 중앙에 고정 — 카테고리들이 주위로 고르게 퍼진다 */
+    nodes.push({ id: "root", title: "Posts", kind: "root", fx: width / 2, fy: height / 2 });
+
+    /* 초기 배치를 트리 모양으로 심는다 — 잎(글)을 DFS 순서로 원 둘레에 고르게 나누고,
+       카테고리는 자식들의 평균 각도·깊이별 반지름에 둔다. 무작위 시작보다 간선 꼬임이 적다 */
+    var children = {};
+    links.forEach(function (l) { (children[l.source] = children[l.source] || []).push(l.target); });
+    var byId = {};
+    nodes.forEach(function (d) { byId[d.id] = d; });
+    var leafCount = nodes.filter(function (d) { return !children[d.id]; }).length || 1;
+    function seedPositions() {
+      var leafIdx = 0;
+      var unit = Math.min(width, height) / 6 * spread;
+      (function place(id, depth) {
+        var d = byId[id];
+        var kids = children[id] || [];
+        var angle;
+        if (!kids.length) {
+          angle = (leafIdx++ + 0.5) / leafCount * 2 * Math.PI;
+        } else {
+          var sum = 0;
+          kids.forEach(function (k) { sum += place(k, depth + 1); });
+          angle = sum / kids.length;
+        }
+        if (d.kind !== "root") {
+          d.x = width / 2 + Math.cos(angle) * unit * depth;
+          d.y = height / 2 + Math.sin(angle) * unit * depth;
+        }
+        return angle;
+      })("root", 0);
+    }
+    seedPositions();
 
     /* 글 분량(chars) 상대 비율 — 긴 글일수록 별이 크고 간선이 길다 */
     var charVals = nodes.filter(function (d) { return d.chars; }).map(function (d) { return d.chars; });
@@ -167,7 +209,7 @@
         d3.drag()
           .clickDistance(4)
           .filter(function (event, d) {
-            /* Space를 누르고 있으면 손바닥(이동) 모드가 우선, CS는 고정이라 드래그 불가 */
+            /* Space를 누르고 있으면 손바닥(이동) 모드가 우선, 루트는 고정이라 드래그 불가 */
             return !space.held && !event.ctrlKey && !event.button && d.kind !== "root";
           })
           .on("start", function (event, d) {
@@ -198,10 +240,10 @@
         if (d.published && d.url) {
           window.location.href = d.url;
         } else if (d.kind === "category") {
-          /* 노란 별 → 해당 카테고리로 필터된 CS 목록 */
-          window.location.href = "/study/?category=" + encodeURIComponent(d.title);
+          /* 노란 별 → 해당 카테고리(하위 포함)로 필터된 글 목록 */
+          window.location.href = "/posts/?category=" + encodeURIComponent(d.path);
         } else if (d.kind === "root") {
-          window.location.href = "/study/";
+          window.location.href = "/posts/";
         }
       });
 
@@ -244,17 +286,17 @@
       var minY = Math.min.apply(null, ys) - padY;
       var maxY = Math.max.apply(null, ys) + padY;
       var scale, tx, ty;
-      var cs = null;
+      var root = null;
       for (var n = 0; n < nodes.length; n++) {
-        if (nodes[n].kind === "root") { cs = nodes[n]; break; }
+        if (nodes[n].kind === "root") { root = nodes[n]; break; }
       }
-      if (cs) {
-        /* CS를 화면 정중앙에 두고, 가장 멀리 뻗은 노드까지 들어오는 배율 */
-        var halfW = Math.max(cs.x - minX, maxX - cs.x);
-        var halfH = Math.max(cs.y - minY, maxY - cs.y);
+      if (root) {
+        /* 루트를 화면 정중앙에 두고, 가장 멀리 뻗은 노드까지 들어오는 배율 */
+        var halfW = Math.max(root.x - minX, maxX - root.x);
+        var halfH = Math.max(root.y - minY, maxY - root.y);
         scale = Math.min(width / 2 / halfW, height / 2 / halfH, 1.2);
-        tx = width / 2 - scale * cs.x;
-        ty = height / 2 - scale * cs.y;
+        tx = width / 2 - scale * root.x;
+        ty = height / 2 - scale * root.y;
       } else {
         scale = Math.min(width / (maxX - minX), height / (maxY - minY), 1.2);
         tx = width / 2 - scale * (minX + maxX) / 2;
@@ -281,15 +323,14 @@
           d.fx = width / 2;
           d.fy = height / 2;
         } else {
-          d.x = undefined;
-          d.y = undefined;
           d.vx = 0;
           d.vy = 0;
           d.fx = null;
           d.fy = null;
         }
       });
-      simulation.nodes(nodes); /* 좌표가 빈 노드는 초기 배치부터 다시 */
+      seedPositions(); /* 처음 로드와 같은 트리 모양 초기 배치부터 다시 */
+      simulation.nodes(nodes);
       simulation.alpha(1); /* 식은 시뮬레이션을 다시 데워야 처음 로드와 같은 결과가 나온다 */
       for (var r = 0; r < 300; r++) simulation.tick();
       var to = nodes.map(function (d) { return [d.x, d.y]; });
