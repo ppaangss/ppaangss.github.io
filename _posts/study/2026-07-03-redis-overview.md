@@ -96,5 +96,3 @@ session:a8f3c1        # 세션 ID a8f3c1의 세션 데이터
 ![DEL과 UNLINK, 큰 값의 메모리를 누가 해제하는지](/assets/img/redis-overview/redis-overview-01-del-vs-unlink.png)
 
 `KEYS`는 `*`(아무 문자열), `?`(아무 한 글자) 같은 패턴을 쓸 수 있어 편리하지만, 모든 키를 한 번에 훑는다. 키가 수백만 개인 운영 서버에서 실행하면 그동안 다른 요청을 처리하지 못한다. 학습용 서버에서만 쓰고, 운영 환경에서는 `SCAN`을 쓴다.
-
----
